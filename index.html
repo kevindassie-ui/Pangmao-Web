@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f6b4f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="胖猫" />
+    <meta
+      name="description"
+      content="胖猫法语学习：可离线使用的法中双向词典。"
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+    <link rel="icon" href="./icons/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>胖猫 · 学法语</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-bar">
+        <div class="brand">
+          <img src="./icons/icon-192.png" width="44" height="44" alt="胖猫图标" />
+          <div>
+            <h1>胖猫</h1>
+            <p>我学法语</p>
+          </div>
+        </div>
+        <button class="icon-button" id="aboutButton" type="button" aria-label="关于和数据来源">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 11v6M12 7.4v.2"></path>
+          </svg>
+        </button>
+      </header>
+
+      <main>
+        <section id="dictionaryView" class="view" aria-labelledby="dictionaryTitle">
+          <h2 id="dictionaryTitle" class="sr-only">法中双向词典</h2>
+
+          <aside id="installHint" class="install-hint" hidden>
+            <div class="install-icon" aria-hidden="true">＋</div>
+            <div>
+              <strong>像应用一样使用胖猫</strong>
+              <p>在 Safari 中点击“分享”，然后选择“添加到主屏幕”。</p>
+            </div>
+            <button id="dismissInstallHint" type="button" aria-label="关闭安装提示">×</button>
+          </aside>
+
+          <form id="searchForm" class="search-form" role="search">
+            <label for="searchInput">法语单词或中文意思</label>
+            <div class="search-field">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m16.5 16.5 4 4"></path>
+              </svg>
+              <input
+                id="searchInput"
+                name="query"
+                type="search"
+                inputmode="search"
+                enterkeyhint="search"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="例如：avocat 或 律师"
+              />
+              <button id="clearSearch" class="clear-button" type="button" aria-label="清空" hidden>×</button>
+            </div>
+          </form>
+
+          <div id="suggestions" class="suggestions" aria-label="搜索示例">
+            <button type="button" data-query="律师">律师</button>
+            <button type="button" data-query="avocat">avocat</button>
+            <button type="button" data-query="bonjour">bonjour</button>
+            <button type="button" data-query="医生">医生</button>
+          </div>
+
+          <section id="welcome" class="welcome-card">
+            <span class="eyebrow">法语 ⇄ 中文</span>
+            <h2>两种语言，都可以直接搜索</h2>
+            <p>输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。</p>
+          </section>
+
+          <div id="loadingState" class="state-card" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <div>
+              <strong>正在准备离线词典…</strong>
+              <p>第一次打开需要下载约 3 MB 的法语词库。</p>
+            </div>
+          </div>
+
+          <div id="emptyState" class="state-card" hidden>
+            <span class="state-symbol" aria-hidden="true">?</span>
+            <div>
+              <strong>没有找到这个词</strong>
+              <p>可以尝试词的原形、另一种写法，或使用中文意思搜索。</p>
+            </div>
+          </div>
+
+          <div id="errorState" class="state-card error" role="alert" hidden>
+            <span class="state-symbol" aria-hidden="true">!</span>
+            <div>
+              <strong>词典暂时无法打开</strong>
+              <p id="errorMessage">请检查网络后重新打开胖猫。</p>
+              <button id="retryButton" class="text-button" type="button">重试</button>
+            </div>
+          </div>
+
+          <section id="resultsSection" hidden>
+            <div class="section-heading">
+              <h2>搜索结果</h2>
+              <span id="resultCount"></span>
+            </div>
+            <div id="results" class="result-list"></div>
+          </section>
+        </section>
+
+        <section id="favoritesView" class="view" aria-labelledby="favoritesTitle" hidden>
+          <div class="page-heading">
+            <span class="eyebrow">保存在这台设备上</span>
+            <h2 id="favoritesTitle">收藏</h2>
+            <p>收藏只保存在当前浏览器中，不会发送到服务器。</p>
+          </div>
+          <div id="favoritesEmpty" class="state-card">
+            <span class="state-symbol heart" aria-hidden="true">♡</span>
+            <div>
+              <strong>还没有收藏</strong>
+              <p>打开一个词条，然后点击“收藏”。</p>
+            </div>
+          </div>
+          <div id="favorites" class="result-list"></div>
+        </section>
+      </main>
+
+      <footer class="status-bar" aria-live="polite">
+        <span id="statusDot" class="status-dot loading"></span>
+        <span id="dictionaryStatus">正在载入词典</span>
+      </footer>
+
+      <nav class="bottom-navigation" aria-label="主导航">
+        <button class="nav-item active" type="button" data-view="dictionaryView" aria-current="page">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z"></path>
+            <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"></path>
+          </svg>
+          <span>词典</span>
+        </button>
+        <button class="nav-item" type="button" data-view="favoritesView">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"></path>
+          </svg>
+          <span>收藏</span>
+        </button>
+      </nav>
+    </div>
+
+    <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
+    <article id="entrySheet" class="entry-sheet" aria-modal="true" role="dialog" aria-labelledby="entryTitle" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <span class="eyebrow">法语词条</span>
+        <button id="closeSheet" class="icon-button" type="button" aria-label="关闭">×</button>
+      </header>
+      <div id="entryContent"></div>
+    </article>
+
+    <div id="aboutBackdrop" class="sheet-backdrop" hidden></div>
+    <article id="aboutSheet" class="entry-sheet about-sheet" aria-modal="true" role="dialog" aria-labelledby="aboutTitle" hidden>
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div>
+          <span class="eyebrow">胖猫 Web 0.1</span>
+          <h2 id="aboutTitle">关于与数据来源</h2>
+        </div>
+        <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
+      </header>
+      <div class="about-content">
+        <p>这是“我学法语”方向的私人测试版。搜索、收藏和发音不需要账户。</p>
+        <dl>
+          <div><dt>词典</dt><dd id="sourceName">FreeDict / WikDict</dd></div>
+          <div><dt>版本</dt><dd id="sourceRevision">—</dd></div>
+          <div><dt>许可</dt><dd id="sourceLicense">CC BY-SA 3.0</dd></div>
+          <div><dt>词条数量</dt><dd id="sourceCount">—</dd></div>
+        </dl>
+        <p class="fine-print">数据来自 WikDict、Wiktionary 和 DBnary 贡献者。机器生成的内容不会被标记为经过验证的词典例句。</p>
+      </div>
+    </article>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

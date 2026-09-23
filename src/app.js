@@ -1,0 +1,473 @@
+import { createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js";
+import {
+  dismissInstallHint,
+  isInstallHintDismissed,
+  loadFavorites,
+  saveFavorites,
+} from "./storage.js";
+
+const elements = Object.fromEntries(
+  [
+    "aboutBackdrop",
+    "aboutButton",
+    "aboutSheet",
+    "clearSearch",
+    "closeAbout",
+    "closeSheet",
+    "dictionaryStatus",
+    "dictionaryView",
+    "dismissInstallHint",
+    "emptyState",
+    "entryContent",
+    "entrySheet",
+    "errorMessage",
+    "errorState",
+    "favorites",
+    "favoritesEmpty",
+    "favoritesView",
+    "installHint",
+    "loadingState",
+    "resultCount",
+    "results",
+    "resultsSection",
+    "retryButton",
+    "searchForm",
+    "searchInput",
+    "sheetBackdrop",
+    "sourceCount",
+    "sourceLicense",
+    "sourceName",
+    "sourceRevision",
+    "statusDot",
+    "suggestions",
+    "toast",
+    "welcome",
+  ].map((id) => [id, document.getElementById(id)]),
+);
+
+const grammarLabels = {
+  adj: "形容词",
+  adv: "副词",
+  conj: "连词",
+  fem: "阴性",
+  interj: "感叹词",
+  masc: "阳性",
+  n: "名词",
+  num: "数词",
+  prep: "介词",
+  pron: "代词",
+  v: "动词",
+};
+
+let dictionary = null;
+let favorites = loadFavorites();
+let activeEntryId = null;
+let lastFocusedElement = null;
+let searchTimer = null;
+let toastTimer = null;
+let loadedEntryCount = 0;
+let offlineReady = false;
+
+function node(tagName, options = {}, children = []) {
+  const element = document.createElement(tagName);
+  if (options.className) element.className = options.className;
+  if (options.text !== undefined) element.textContent = options.text;
+  if (options.type) element.type = options.type;
+  if (options.ariaLabel) element.setAttribute("aria-label", options.ariaLabel);
+  if (options.dataset) Object.assign(element.dataset, options.dataset);
+  if (options.attributes) {
+    Object.entries(options.attributes).forEach(([name, value]) => element.setAttribute(name, value));
+  }
+  element.append(...children.filter(Boolean));
+  return element;
+}
+
+function showToast(message) {
+  window.clearTimeout(toastTimer);
+  elements.toast.textContent = message;
+  elements.toast.hidden = false;
+  toastTimer = window.setTimeout(() => {
+    elements.toast.hidden = true;
+  }, 2200);
+}
+
+function setStatus(kind, message) {
+  elements.statusDot.className = `status-dot${kind ? ` ${kind}` : ""}`;
+  elements.dictionaryStatus.textContent = message;
+}
+
+function updateReadyStatus() {
+  if (!loadedEntryCount) return;
+  const count = new Intl.NumberFormat("zh-CN").format(loadedEntryCount);
+  setStatus("", `${count} 个词条${offlineReady ? " · 可离线使用" : ""}`);
+}
+
+function grammarFacts(entry) {
+  const values = [...entry.partsOfSpeech, ...entry.genders];
+  return [...new Set(values)].map((value) => grammarLabels[value] ?? value);
+}
+
+function previewFor(result) {
+  const indexes = result.matchedSenseIndexes?.length
+    ? result.matchedSenseIndexes
+    : result.entry.senses.map((_, index) => index);
+  const values = indexes.flatMap((index) => result.entry.senses[index]?.chinese ?? []);
+  return [...new Set(values)].slice(0, 6).join(" · ") || "暂无中文释义";
+}
+
+function resultCard(result) {
+  const entry = result.entry;
+  const wordBlock = node("div", {}, [
+    node("h3", { className: "result-word", text: entry.headword }),
+    entry.pronunciations.length
+      ? node("div", { className: "pronunciation", text: `/${entry.pronunciations.join("/ · /")}/` })
+      : null,
+  ]);
+  const facts = grammarFacts(entry);
+  const topLine = node("div", { className: "result-topline" }, [
+    wordBlock,
+    facts.length ? node("span", { className: "grammar-badge", text: facts[0] }) : null,
+  ]);
+  const children = [
+    topLine,
+    node("p", { className: "meaning-preview", text: previewFor(result) }),
+  ];
+  if (result.matchType === "inflection") {
+    children.push(
+      node("span", {
+        className: "match-note",
+        text: `已识别词形，显示原形：${entry.headword}`,
+      }),
+    );
+  }
+  const card = node(
+    "button",
+    {
+      className: "result-card",
+      type: "button",
+      ariaLabel: `打开词条：${entry.headword}`,
+    },
+    children,
+  );
+  card.addEventListener("click", () => openEntry(entry.id));
+  return card;
+}
+
+function renderResults(results) {
+  elements.results.replaceChildren(...results.map(resultCard));
+  elements.resultCount.textContent = results.length ? `${results.length} 条` : "";
+  elements.resultsSection.hidden = results.length === 0;
+  elements.emptyState.hidden = results.length !== 0;
+}
+
+function runSearch({ focus = false } = {}) {
+  if (!dictionary) return;
+  const query = elements.searchInput.value.trim();
+  elements.clearSearch.hidden = query.length === 0;
+  elements.welcome.hidden = query.length > 0;
+  elements.emptyState.hidden = true;
+
+  if (!query) {
+    elements.resultsSection.hidden = true;
+    elements.results.replaceChildren();
+    elements.resultCount.textContent = "";
+  } else {
+    renderResults(searchDictionary(dictionary, query));
+  }
+  if (focus) elements.searchInput.focus();
+}
+
+function searchFor(query) {
+  switchView("dictionaryView");
+  elements.searchInput.value = query;
+  runSearch();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function speakFrench(text) {
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+    showToast("这台设备暂不支持语音播放");
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "fr-FR";
+  utterance.rate = 0.82;
+  const frenchVoice = window.speechSynthesis
+    .getVoices()
+    .find((voice) => voice.lang.toLocaleLowerCase().startsWith("fr"));
+  if (frenchVoice) utterance.voice = frenchVoice;
+  utterance.onerror = () => showToast("发音播放失败，请稍后重试");
+  window.speechSynthesis.speak(utterance);
+}
+
+function senseCard(sense, index) {
+  const chinese = sense.chinese.map((translation) => {
+    const chip = node("button", {
+      className: "chinese-chip",
+      text: translation,
+      type: "button",
+      ariaLabel: `搜索中文：${translation}`,
+    });
+    chip.addEventListener("click", () => {
+      closeEntry();
+      searchFor(translation);
+    });
+    return chip;
+  });
+  const definitions = sense.definitions.join("；");
+  return node("section", { className: "sense-card" }, [
+    node("span", { className: "sense-number", text: String(index + 1) }),
+    chinese.length ? node("div", { className: "chinese-list" }, chinese) : null,
+    definitions
+      ? node("p", { className: "sense-definition", text: definitions })
+      : node("p", { className: "sense-definition", text: "暂无法语释义" }),
+  ]);
+}
+
+function favoriteButton(entry) {
+  const selected = favorites.has(entry.id);
+  const button = node("button", {
+    className: `round-action${selected ? " active" : ""}`,
+    text: selected ? "♥" : "♡",
+    type: "button",
+    ariaLabel: selected ? "取消收藏" : "收藏",
+    attributes: { "aria-pressed": String(selected) },
+  });
+  button.addEventListener("click", () => {
+    if (favorites.has(entry.id)) {
+      favorites.delete(entry.id);
+      showToast("已取消收藏");
+    } else {
+      favorites.add(entry.id);
+      showToast("已收藏");
+    }
+    saveFavorites(favorites);
+    renderFavorites();
+    openEntry(entry.id, { preserveFocus: true });
+  });
+  return button;
+}
+
+function entryDetails(entry) {
+  const facts = grammarFacts(entry);
+  const wordRow = node("div", { className: "sheet-word-row" }, [
+    node("div", {}, [
+      node("h2", { text: entry.headword, attributes: { id: "entryTitle", lang: "fr" } }),
+      entry.pronunciations.length
+        ? node("div", {
+            className: "pronunciation",
+            text: `/${entry.pronunciations.join("/ · /")}/`,
+          })
+        : null,
+    ]),
+    node("div", { className: "sheet-actions" }, [
+      (() => {
+        const button = node("button", {
+          className: "round-action",
+          text: "♪",
+          type: "button",
+          ariaLabel: `播放法语发音：${entry.headword}`,
+        });
+        button.addEventListener("click", () => speakFrench(entry.headword));
+        return button;
+      })(),
+      favoriteButton(entry),
+    ]),
+  ]);
+  return [
+    wordRow,
+    facts.length
+      ? node(
+          "div",
+          { className: "entry-facts" },
+          facts.map((fact) => node("span", { text: fact })),
+        )
+      : null,
+    ...entry.senses.map(senseCard),
+  ].filter(Boolean);
+}
+
+function openEntry(entryId, { preserveFocus = false } = {}) {
+  if (!dictionary) return;
+  const entry = getEntry(dictionary, entryId);
+  if (!entry) return;
+  if (!preserveFocus) lastFocusedElement = document.activeElement;
+  activeEntryId = entryId;
+  elements.entryContent.replaceChildren(...entryDetails(entry));
+  elements.sheetBackdrop.hidden = false;
+  elements.entrySheet.hidden = false;
+  document.body.classList.add("sheet-open");
+  elements.closeSheet.focus({ preventScroll: true });
+}
+
+function closeEntry({ restoreFocus = true } = {}) {
+  if (elements.entrySheet.hidden) return;
+  window.speechSynthesis?.cancel();
+  elements.entrySheet.hidden = true;
+  elements.sheetBackdrop.hidden = true;
+  elements.entryContent.replaceChildren();
+  document.body.classList.remove("sheet-open");
+  activeEntryId = null;
+  if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+    lastFocusedElement.focus({ preventScroll: true });
+  }
+}
+
+function openAbout() {
+  lastFocusedElement = document.activeElement;
+  elements.aboutBackdrop.hidden = false;
+  elements.aboutSheet.hidden = false;
+  document.body.classList.add("sheet-open");
+  elements.closeAbout.focus({ preventScroll: true });
+}
+
+function closeAbout() {
+  if (elements.aboutSheet.hidden) return;
+  elements.aboutSheet.hidden = true;
+  elements.aboutBackdrop.hidden = true;
+  document.body.classList.remove("sheet-open");
+  if (lastFocusedElement instanceof HTMLElement) lastFocusedElement.focus({ preventScroll: true });
+}
+
+function renderFavorites() {
+  if (!dictionary) return;
+  const entries = [...favorites]
+    .map((entryId) => getEntry(dictionary, entryId))
+    .filter(Boolean)
+    .sort((left, right) => left.headword.localeCompare(right.headword, "fr"));
+  const missingIds = [...favorites].filter((entryId) => !getEntry(dictionary, entryId));
+  if (missingIds.length) {
+    missingIds.forEach((entryId) => favorites.delete(entryId));
+    saveFavorites(favorites);
+  }
+  elements.favorites.replaceChildren(
+    ...entries.map((entry) =>
+      resultCard({
+        entry,
+        matchedSenseIndexes: entry.senses.map((_, index) => index),
+        matchType: "favorite",
+      }),
+    ),
+  );
+  elements.favoritesEmpty.hidden = entries.length > 0;
+}
+
+function switchView(viewId) {
+  const dictionaryActive = viewId === "dictionaryView";
+  elements.dictionaryView.hidden = !dictionaryActive;
+  elements.favoritesView.hidden = dictionaryActive;
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    const active = button.dataset.view === viewId;
+    button.classList.toggle("active", active);
+    if (active) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  if (!dictionaryActive) renderFavorites();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function fillSourceDetails(pack) {
+  elements.sourceName.textContent = pack.source.name;
+  elements.sourceRevision.textContent = pack.source.revision;
+  elements.sourceLicense.textContent = pack.source.license;
+  elements.sourceCount.textContent = new Intl.NumberFormat("zh-CN").format(pack.entryCount);
+}
+
+async function loadDictionary() {
+  elements.loadingState.hidden = false;
+  elements.errorState.hidden = true;
+  setStatus("loading", "正在载入词典");
+  try {
+    const response = await fetch("./data/french-pack.json");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const pack = await response.json();
+    dictionary = createDictionaryIndex(pack);
+    loadedEntryCount = pack.entryCount;
+    fillSourceDetails(pack);
+    renderFavorites();
+    elements.loadingState.hidden = true;
+    updateReadyStatus();
+    runSearch();
+  } catch (error) {
+    console.error("Unable to load dictionary", error);
+    dictionary = null;
+    loadedEntryCount = 0;
+    elements.loadingState.hidden = true;
+    elements.errorState.hidden = false;
+    elements.errorMessage.textContent = navigator.onLine
+      ? "词典数据无法读取，请稍后重试。"
+      : "当前没有网络，且离线词典尚未下载完成。";
+    setStatus("error", "词典载入失败");
+  }
+}
+
+function configureInstallHint() {
+  const userAgent = navigator.userAgent;
+  const iOS = /iPhone|iPad|iPod/.test(userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const safari = /Safari/.test(userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(userAgent);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+  elements.installHint.hidden = !(iOS && safari && !standalone && !isInstallHintDismissed());
+}
+
+function bindEvents() {
+  elements.searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    window.clearTimeout(searchTimer);
+    runSearch();
+    elements.searchInput.blur();
+  });
+  elements.searchInput.addEventListener("input", () => {
+    elements.clearSearch.hidden = elements.searchInput.value.length === 0;
+    window.clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(runSearch, 140);
+  });
+  elements.clearSearch.addEventListener("click", () => {
+    elements.searchInput.value = "";
+    runSearch({ focus: true });
+  });
+  elements.suggestions.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-query]");
+    if (button) searchFor(button.dataset.query);
+  });
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.addEventListener("click", () => switchView(button.dataset.view));
+  });
+  elements.closeSheet.addEventListener("click", () => closeEntry());
+  elements.sheetBackdrop.addEventListener("click", () => closeEntry());
+  elements.aboutButton.addEventListener("click", openAbout);
+  elements.closeAbout.addEventListener("click", closeAbout);
+  elements.aboutBackdrop.addEventListener("click", closeAbout);
+  elements.retryButton.addEventListener("click", loadDictionary);
+  elements.dismissInstallHint.addEventListener("click", () => {
+    dismissInstallHint();
+    elements.installHint.hidden = true;
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!elements.entrySheet.hidden) closeEntry();
+    else if (!elements.aboutSheet.hidden) closeAbout();
+  });
+  window.addEventListener("online", () => {
+    if (!dictionary) loadDictionary();
+  });
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+    await navigator.serviceWorker.ready;
+    offlineReady = true;
+    updateReadyStatus();
+  } catch (error) {
+    console.warn("Service worker registration failed", error);
+  }
+}
+
+bindEvents();
+configureInstallHint();
+loadDictionary();
+registerServiceWorker();
