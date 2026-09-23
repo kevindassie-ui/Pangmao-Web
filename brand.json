@@ -1,0 +1,13 @@
+{
+  "id": "wife-pilot",
+  "theme": "deer",
+  "title": "胖猫",
+  "subtitle": "我学法语",
+  "icon": "./icons/icon-192.png",
+  "iconAlt": "抱着红书的小鹿图标",
+  "mascot": "./images/deer-mascot.png",
+  "themeColor": "#a93239",
+  "welcomeEyebrow": "今天也学一点法语",
+  "welcomeTitle": "小鹿陪你，慢慢把法语学会",
+  "welcomeBody": "查一个词、听一次发音，都是一点进步。法语和中文都可以直接搜索。"
+}

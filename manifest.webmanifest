@@ -1,17 +1,13 @@
 {
   "name": "胖猫 · 我学法语",
   "short_name": "胖猫",
-  "description": "为中文母语者设计的离线法中双向词典。",
+  "description": "可离线使用的法中双向词典。",
   "lang": "zh-Hans",
-  "dir": "ltr",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#f7f7f1",
-  "theme_color": "#0f6b4f",
-  "categories": ["education", "productivity"],
+  "background_color": "#fff7f0",
+  "theme_color": "#a93239",
   "icons": [
     {
       "src": "./icons/icon-192.png",

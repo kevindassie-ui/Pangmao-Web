@@ -1,15 +1,19 @@
-const CACHE_NAME = "pangmao-web-v0.1.0";
+const CACHE_NAME = "pangmao-web-v0.2.0";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./brand.json",
   "./styles.css",
   "./manifest.webmanifest",
   "./src/app.js",
+  "./src/chinese-fallback.js",
   "./src/search-engine.js",
   "./src/storage.js",
   "./data/french-pack.json",
+  "./data/chinese-fallback/manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./images/deer-mascot.png",
 ];
 
 function scopedUrl(path) {

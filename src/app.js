@@ -1,4 +1,5 @@
-import { createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js";
+import { createChineseFallbackLoader } from "./chinese-fallback.js";
+import { containsHan, createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js";
 import {
   dismissInstallHint,
   isInstallHintDismissed,
@@ -11,6 +12,9 @@ const elements = Object.fromEntries(
     "aboutBackdrop",
     "aboutButton",
     "aboutSheet",
+    "brandIcon",
+    "brandSubtitle",
+    "brandTitle",
     "clearSearch",
     "closeAbout",
     "closeSheet",
@@ -25,6 +29,7 @@ const elements = Object.fromEntries(
     "favorites",
     "favoritesEmpty",
     "favoritesView",
+    "fallbackState",
     "installHint",
     "loadingState",
     "resultCount",
@@ -35,6 +40,8 @@ const elements = Object.fromEntries(
     "searchInput",
     "sheetBackdrop",
     "sourceCount",
+    "sourceChineseCount",
+    "sourceFallback",
     "sourceLicense",
     "sourceName",
     "sourceRevision",
@@ -42,6 +49,10 @@ const elements = Object.fromEntries(
     "suggestions",
     "toast",
     "welcome",
+    "welcomeBody",
+    "welcomeEyebrow",
+    "welcomeMascot",
+    "welcomeTitle",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
@@ -64,9 +75,25 @@ let favorites = loadFavorites();
 let activeEntryId = null;
 let lastFocusedElement = null;
 let searchTimer = null;
+let searchGeneration = 0;
 let toastTimer = null;
 let loadedEntryCount = 0;
 let offlineReady = false;
+const lookupChineseFallback = createChineseFallbackLoader();
+
+const defaultBrand = {
+  id: "global",
+  theme: "global",
+  title: "胖猫",
+  subtitle: "我学法语",
+  icon: "./icons/icon-192.png",
+  iconAlt: "胖猫图标",
+  mascot: "",
+  themeColor: "#0f6b4f",
+  welcomeEyebrow: "法语 ⇄ 中文",
+  welcomeTitle: "两种语言，都可以直接搜索",
+  welcomeBody: "输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。",
+};
 
 function node(tagName, options = {}, children = []) {
   const element = document.createElement(tagName);
@@ -80,6 +107,37 @@ function node(tagName, options = {}, children = []) {
   }
   element.append(...children.filter(Boolean));
   return element;
+}
+
+function applyBranding(value) {
+  const brand = { ...defaultBrand, ...(value ?? {}) };
+  document.documentElement.dataset.brand = brand.theme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", brand.themeColor);
+  elements.brandTitle.textContent = brand.title;
+  elements.brandSubtitle.textContent = brand.subtitle;
+  elements.brandIcon.src = brand.icon;
+  elements.brandIcon.alt = brand.iconAlt;
+  elements.welcomeEyebrow.textContent = brand.welcomeEyebrow;
+  elements.welcomeTitle.textContent = brand.welcomeTitle;
+  elements.welcomeBody.textContent = brand.welcomeBody;
+  if (brand.mascot) {
+    elements.welcomeMascot.src = brand.mascot;
+    elements.welcomeMascot.hidden = false;
+  } else {
+    elements.welcomeMascot.hidden = true;
+    elements.welcomeMascot.removeAttribute("src");
+  }
+}
+
+async function loadBranding() {
+  try {
+    const response = await fetch("./brand.json");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    applyBranding(await response.json());
+  } catch (error) {
+    console.warn("Unable to load branding; using global defaults", error);
+    applyBranding(defaultBrand);
+  }
 }
 
 function showToast(message) {
@@ -153,6 +211,45 @@ function resultCard(result) {
   return card;
 }
 
+function fallbackResultCard(query, record) {
+  const inferred = record.kind === "inferred";
+  const meanings = inferred ? record.possibleFrench ?? [] : record.french ?? [];
+  const meaningItems = meanings.map((meaning) =>
+    node("li", {}, [
+      node("span", { text: meaning, attributes: { lang: "fr" } }),
+      (() => {
+        const button = node("button", {
+          className: "fallback-speak",
+          text: "♪",
+          type: "button",
+          ariaLabel: `播放法语发音：${meaning}`,
+        });
+        button.addEventListener("click", () => speakFrench(meaning));
+        return button;
+      })(),
+    ]),
+  );
+  const note = inferred
+    ? `根据与“${record.inferredFrom}”相同的词典释义推测；这不是直接收录的法语翻译。`
+    : "来自胖猫补充词典的直接法语释义。";
+  return node("article", { className: `result-card fallback-card${inferred ? " inferred" : ""}` }, [
+    node("div", { className: "fallback-heading" }, [
+      node("div", {}, [
+        node("h3", { className: "result-word", text: query }),
+        record.pinyin
+          ? node("div", { className: "pronunciation", text: record.pinyin })
+          : null,
+      ]),
+      node("span", {
+        className: `fallback-badge${inferred ? " inferred" : ""}`,
+        text: inferred ? "可能含义" : "补充词典",
+      }),
+    ]),
+    node("ul", { className: "fallback-meanings" }, meaningItems),
+    node("p", { className: "fallback-note", text: note }),
+  ]);
+}
+
 function renderResults(results) {
   elements.results.replaceChildren(...results.map(resultCard));
   elements.resultCount.textContent = results.length ? `${results.length} 条` : "";
@@ -160,19 +257,44 @@ function renderResults(results) {
   elements.emptyState.hidden = results.length !== 0;
 }
 
-function runSearch({ focus = false } = {}) {
+function renderFallbackResults(query, records) {
+  elements.results.replaceChildren(...records.map((record) => fallbackResultCard(query, record)));
+  elements.resultCount.textContent = records.length ? `${records.length} 条补充结果` : "";
+  elements.resultsSection.hidden = records.length === 0;
+  elements.emptyState.hidden = records.length !== 0;
+}
+
+async function runSearch({ focus = false } = {}) {
   if (!dictionary) return;
+  const generation = ++searchGeneration;
   const query = elements.searchInput.value.trim();
   elements.clearSearch.hidden = query.length === 0;
   elements.welcome.hidden = query.length > 0;
   elements.emptyState.hidden = true;
+  elements.fallbackState.hidden = true;
 
   if (!query) {
     elements.resultsSection.hidden = true;
     elements.results.replaceChildren();
     elements.resultCount.textContent = "";
   } else {
-    renderResults(searchDictionary(dictionary, query));
+    const results = searchDictionary(dictionary, query);
+    renderResults(results);
+    if (results.length === 0 && containsHan(query)) {
+      elements.emptyState.hidden = true;
+      elements.fallbackState.hidden = false;
+      try {
+        const fallbackResults = await lookupChineseFallback(query);
+        if (generation !== searchGeneration || elements.searchInput.value.trim() !== query) return;
+        elements.fallbackState.hidden = true;
+        renderFallbackResults(query, fallbackResults);
+      } catch (error) {
+        console.warn("Unable to load Chinese fallback", error);
+        if (generation !== searchGeneration) return;
+        elements.fallbackState.hidden = true;
+        elements.emptyState.hidden = false;
+      }
+    }
   }
   if (focus) elements.searchInput.focus();
 }
@@ -201,6 +323,23 @@ function speakFrench(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+function chineseGlossaryCard(entry) {
+  const groups = entry.chineseGlosses ?? [];
+  if (!groups.length) return null;
+  return node("section", { className: "chinese-glossary" }, [
+    node("div", { className: "glossary-heading" }, [
+      node("strong", { text: "中文解释" }),
+      node("span", { text: "中文维基词典" }),
+    ]),
+    ...groups.map((group) =>
+      node("div", { className: "glossary-group" }, [
+        group.label ? node("span", { className: "glossary-pos", text: group.label }) : null,
+        node("p", { text: group.glosses.join("；") }),
+      ]),
+    ),
+  ]);
+}
+
 function senseCard(sense, index) {
   const chinese = sense.chinese.map((translation) => {
     const chip = node("button", {
@@ -216,12 +355,17 @@ function senseCard(sense, index) {
     return chip;
   });
   const definitions = sense.definitions.join("；");
+  const sourceDetails = node("details", { className: "source-definition" }, [
+    node("summary", { text: "查看法语原始释义" }),
+    definitions
+      ? node("p", { text: definitions, attributes: { lang: "fr" } })
+      : node("p", { text: "暂无法语原始释义" }),
+  ]);
   return node("section", { className: "sense-card" }, [
     node("span", { className: "sense-number", text: String(index + 1) }),
+    node("span", { className: "sense-label", text: "中文释义" }),
     chinese.length ? node("div", { className: "chinese-list" }, chinese) : null,
-    definitions
-      ? node("p", { className: "sense-definition", text: definitions })
-      : node("p", { className: "sense-definition", text: "暂无法语释义" }),
+    sourceDetails,
   ]);
 }
 
@@ -284,6 +428,7 @@ function entryDetails(entry) {
           facts.map((fact) => node("span", { text: fact })),
         )
       : null,
+    chineseGlossaryCard(entry),
     ...entry.senses.map(senseCard),
   ].filter(Boolean);
 }
@@ -370,8 +515,13 @@ function switchView(viewId) {
 function fillSourceDetails(pack) {
   elements.sourceName.textContent = pack.source.name;
   elements.sourceRevision.textContent = pack.source.revision;
-  elements.sourceLicense.textContent = pack.source.license;
+  const enrichmentLicenses = (pack.enrichmentSources ?? []).map((source) => source.license);
+  elements.sourceLicense.textContent = [...new Set([pack.source.license, ...enrichmentLicenses])].join(" / ");
   elements.sourceCount.textContent = new Intl.NumberFormat("zh-CN").format(pack.entryCount);
+  elements.sourceChineseCount.textContent = pack.enrichedEntryCount
+    ? `${new Intl.NumberFormat("zh-CN").format(pack.enrichedEntryCount)} 个法语词条`
+    : "仅显示法中对应词";
+  elements.sourceFallback.textContent = "按需载入 · 直接释义与明确标记的推测分开";
 }
 
 async function loadDictionary() {
@@ -467,7 +617,9 @@ async function registerServiceWorker() {
   }
 }
 
+applyBranding(defaultBrand);
 bindEvents();
 configureInstallHint();
+loadBranding();
 loadDictionary();
 registerServiceWorker();

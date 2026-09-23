@@ -111,7 +111,7 @@ function prepareEntry(entry) {
 }
 
 export function createDictionaryIndex(pack) {
-  if (pack?.schemaVersion !== 1 || !Array.isArray(pack.entries)) {
+  if (![1, 2].includes(pack?.schemaVersion) || !Array.isArray(pack.entries)) {
     throw new Error("词典数据格式不受支持");
   }
 

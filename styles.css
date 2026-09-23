@@ -12,6 +12,7 @@
   --border: #d9e1dc;
   --danger: #a63a32;
   --shadow: 0 14px 38px rgba(31, 54, 43, 0.12);
+  --brand-shadow: rgba(15, 107, 79, 0.18);
   --radius-large: 24px;
   --radius-medium: 17px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -19,6 +20,22 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans SC",
     "Segoe UI", sans-serif;
   font-synthesis: none;
+}
+
+:root[data-brand="deer"] {
+  --background: #fff8f2;
+  --surface: #fffdf9;
+  --surface-soft: #faeee8;
+  --surface-strong: #f3dcd2;
+  --text: #34201f;
+  --muted: #806461;
+  --primary: #a93239;
+  --primary-strong: #842129;
+  --on-primary: #fffaf5;
+  --border: #ead8d1;
+  --danger: #a93239;
+  --shadow: 0 16px 42px rgba(121, 47, 45, 0.16);
+  --brand-shadow: rgba(169, 50, 57, 0.24);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +52,23 @@
     --border: #33423a;
     --danger: #ffb4aa;
     --shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
+    --brand-shadow: rgba(121, 214, 170, 0.2);
+  }
+
+  :root[data-brand="deer"] {
+    --background: #1c1212;
+    --surface: #291b1a;
+    --surface-soft: #352220;
+    --surface-strong: #50302e;
+    --text: #fff3ea;
+    --muted: #d0aaa3;
+    --primary: #ef8d89;
+    --primary-strong: #ffaaa5;
+    --on-primary: #32100f;
+    --border: #513735;
+    --danger: #ffb4aa;
+    --shadow: 0 16px 42px rgba(0, 0, 0, 0.42);
+    --brand-shadow: rgba(239, 141, 137, 0.22);
   }
 }
 
@@ -105,7 +139,7 @@ input:focus-visible {
 
 .brand img {
   border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(15, 107, 79, 0.18);
+  box-shadow: 0 4px 14px var(--brand-shadow);
 }
 
 .brand h1,
@@ -300,6 +334,10 @@ input:focus-visible {
 }
 
 .welcome-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
   overflow: hidden;
   padding: 25px 22px;
   border-radius: var(--radius-large);
@@ -308,6 +346,31 @@ input:focus-visible {
     linear-gradient(135deg, color-mix(in srgb, var(--primary) 94%, #000), color-mix(in srgb, var(--primary) 74%, #7eaa83));
   color: var(--on-primary);
   box-shadow: var(--shadow);
+}
+
+.welcome-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-mascot {
+  align-self: end;
+  width: clamp(86px, 24vw, 132px);
+  max-height: 176px;
+  margin: -16px -8px -25px 0;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 9px 13px rgba(78, 25, 22, 0.18));
+}
+
+.welcome-mascot[hidden] {
+  display: none;
+}
+
+:root[data-brand="deer"] .welcome-card {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(255, 230, 204, 0.34), transparent 35%),
+    linear-gradient(135deg, #8f252d, #ba4b48 62%, #d48469);
 }
 
 .eyebrow {
@@ -423,6 +486,76 @@ input:focus-visible {
 .result-card:active {
   transform: scale(0.995);
   background: var(--surface-soft);
+}
+
+.fallback-card {
+  cursor: default;
+}
+
+.fallback-card.inferred {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+}
+
+.fallback-heading,
+.glossary-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fallback-badge {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--primary-strong);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.fallback-badge.inferred {
+  border: 1px dashed color-mix(in srgb, var(--primary) 50%, var(--border));
+}
+
+.fallback-meanings {
+  display: grid;
+  gap: 7px;
+  margin: 16px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.fallback-meanings li {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px 7px 12px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.fallback-speak {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-strong);
+  color: var(--primary-strong);
+  cursor: pointer;
+}
+
+.fallback-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .result-topline {
@@ -669,6 +802,46 @@ input:focus-visible {
   font-size: 0.78rem;
 }
 
+.chinese-glossary {
+  margin-bottom: 14px;
+  padding: 17px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: var(--radius-medium);
+  background: var(--surface-soft);
+}
+
+.glossary-heading {
+  align-items: center;
+  margin-bottom: 13px;
+}
+
+.glossary-heading strong {
+  font-size: 0.95rem;
+}
+
+.glossary-heading > span {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.glossary-group + .glossary-group {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.glossary-group p {
+  margin: 7px 0 0;
+  line-height: 1.6;
+}
+
+.glossary-pos,
+.sense-label {
+  color: var(--primary-strong);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
 .sense-card {
   margin-bottom: 12px;
   padding: 17px;
@@ -690,6 +863,11 @@ input:focus-visible {
   font-weight: 800;
 }
 
+.sense-label {
+  display: block;
+  margin: -2px 0 9px;
+}
+
 .chinese-list {
   display: flex;
   flex-wrap: wrap;
@@ -703,11 +881,23 @@ input:focus-visible {
   font-size: 1.05rem;
 }
 
-.sense-definition {
-  margin: 0;
+.source-definition {
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.55;
+}
+
+.source-definition summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.source-definition p {
+  margin: 9px 0 0;
 }
 
 .about-sheet {
@@ -793,6 +983,13 @@ input:focus-visible {
 
   .result-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 390px) {
+  .welcome-mascot {
+    width: 80px;
+    margin-right: -13px;
   }
 }
 

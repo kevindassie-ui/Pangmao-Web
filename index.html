@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-Hans">
+<html lang="zh-Hans" data-brand="deer">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f6b4f" />
+    <meta name="theme-color" content="#a93239" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="胖猫" />
@@ -21,10 +21,10 @@
     <div class="app-shell">
       <header class="top-bar">
         <div class="brand">
-          <img src="./icons/icon-192.png" width="44" height="44" alt="胖猫图标" />
+          <img id="brandIcon" src="./icons/icon-192.png" width="44" height="44" alt="胖猫图标" />
           <div>
-            <h1>胖猫</h1>
-            <p>我学法语</p>
+            <h1 id="brandTitle">胖猫</h1>
+            <p id="brandSubtitle">我学法语</p>
           </div>
         </div>
         <button class="icon-button" id="aboutButton" type="button" aria-label="关于和数据来源">
@@ -78,16 +78,19 @@
           </div>
 
           <section id="welcome" class="welcome-card">
-            <span class="eyebrow">法语 ⇄ 中文</span>
-            <h2>两种语言，都可以直接搜索</h2>
-            <p>输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。</p>
+            <div class="welcome-copy">
+              <span id="welcomeEyebrow" class="eyebrow">法语 ⇄ 中文</span>
+              <h2 id="welcomeTitle">两种语言，都可以直接搜索</h2>
+              <p id="welcomeBody">输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。</p>
+            </div>
+            <img id="welcomeMascot" class="welcome-mascot" alt="陪伴学习法语的小鹿" hidden />
           </section>
 
           <div id="loadingState" class="state-card" role="status">
             <span class="spinner" aria-hidden="true"></span>
             <div>
               <strong>正在准备离线词典…</strong>
-              <p>第一次打开需要下载约 3 MB 的法语词库。</p>
+              <p>第一次打开需要下载约 3.2 MB 的法语词库。</p>
             </div>
           </div>
 
@@ -95,7 +98,15 @@
             <span class="state-symbol" aria-hidden="true">?</span>
             <div>
               <strong>没有找到这个词</strong>
-              <p>可以尝试词的原形、另一种写法，或使用中文意思搜索。</p>
+              <p>可以尝试词的原形或另一种写法。中文查询还会按需查找补充词典。</p>
+            </div>
+          </div>
+
+          <div id="fallbackState" class="state-card" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <div>
+              <strong>正在查找更多可能…</strong>
+              <p>胖猫正在按需载入补充词典，不会下载完整的大词库。</p>
             </div>
           </div>
 
@@ -171,7 +182,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <header class="sheet-header">
         <div>
-          <span class="eyebrow">胖猫 Web 0.1</span>
+          <span class="eyebrow">胖猫 Web 0.2</span>
           <h2 id="aboutTitle">关于与数据来源</h2>
         </div>
         <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
@@ -183,8 +194,10 @@
           <div><dt>版本</dt><dd id="sourceRevision">—</dd></div>
           <div><dt>许可</dt><dd id="sourceLicense">CC BY-SA 3.0</dd></div>
           <div><dt>词条数量</dt><dd id="sourceCount">—</dd></div>
+          <div><dt>中文解释</dt><dd id="sourceChineseCount">—</dd></div>
+          <div><dt>中文补充查询</dt><dd id="sourceFallback">—</dd></div>
         </dl>
-        <p class="fine-print">数据来自 WikDict、Wiktionary 和 DBnary 贡献者。机器生成的内容不会被标记为经过验证的词典例句。</p>
+        <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取。推测释义始终单独标记，不会冒充直接词典释义。</p>
       </div>
     </article>
 
