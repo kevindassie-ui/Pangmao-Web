@@ -20,7 +20,8 @@ Creative Commons Attribution-ShareAlike 4.0:
 - Licence: https://creativecommons.org/licenses/by-sa/4.0/
 
 The lazy Chinese fallback derives from CC-CEDICT (CC BY-SA 4.0) and CFDICT
-(CC BY-SA). Indirect exact-gloss bridges are displayed as possible meanings,
+(CC BY-SA 3.0). The reviewed `affiche` supplement also derives from CFDICT.
+Indirect exact-gloss bridges are displayed as possible meanings,
 not as direct dictionary translations:
 
 - CC-CEDICT: https://www.mdbg.net/chinese/dictionary?page=cc-cedict

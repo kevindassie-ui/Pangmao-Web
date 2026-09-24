@@ -1,7 +1,7 @@
 {
   "name": "胖猫 · 我学法语",
   "short_name": "胖猫",
-  "description": "可离线使用的法中双向词典。",
+  "description": "可离线使用的法中双向词典与法语 Reader。",
   "lang": "zh-Hans",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "pangmao-web-v0.2.0";
+const CACHE_NAME = "pangmao-web-v0.3.0";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./src/app.js",
   "./src/chinese-fallback.js",
+  "./src/reader.js",
   "./src/search-engine.js",
   "./src/storage.js",
   "./data/french-pack.json",

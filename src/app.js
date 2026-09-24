@@ -1,10 +1,13 @@
 import { createChineseFallbackLoader } from "./chinese-fallback.js";
+import { segmentFrenchText } from "./reader.js";
 import { containsHan, createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js";
 import {
   dismissInstallHint,
   isInstallHintDismissed,
   loadFavorites,
+  loadReaderDraft,
   saveFavorites,
+  saveReaderDraft,
 } from "./storage.js";
 
 const elements = Object.fromEntries(
@@ -36,6 +39,16 @@ const elements = Object.fromEntries(
     "results",
     "resultsSection",
     "retryButton",
+    "readerAnalyzeButton",
+    "readerClearButton",
+    "readerEmpty",
+    "readerFile",
+    "readerImportButton",
+    "readerInput",
+    "readerResults",
+    "readerSentenceCount",
+    "readerSentences",
+    "readerView",
     "searchForm",
     "searchInput",
     "sheetBackdrop",
@@ -79,6 +92,7 @@ let searchGeneration = 0;
 let toastTimer = null;
 let loadedEntryCount = 0;
 let offlineReady = false;
+let readerSentences = [];
 const lookupChineseFallback = createChineseFallbackLoader();
 
 const defaultBrand = {
@@ -236,9 +250,6 @@ function fallbackResultCard(query, record) {
     node("div", { className: "fallback-heading" }, [
       node("div", {}, [
         node("h3", { className: "result-word", text: query }),
-        record.pinyin
-          ? node("div", { className: "pronunciation", text: record.pinyin })
-          : null,
       ]),
       node("span", {
         className: `fallback-badge${inferred ? " inferred" : ""}`,
@@ -321,6 +332,130 @@ function speakFrench(text) {
   if (frenchVoice) utterance.voice = frenchVoice;
   utterance.onerror = () => showToast("发音播放失败，请稍后重试");
   window.speechSynthesis.speak(utterance);
+}
+
+function findReaderEntry(candidates) {
+  if (!dictionary) return null;
+  for (const candidate of candidates) {
+    const result = searchDictionary(dictionary, candidate, 12).find(
+      ({ matchType }) => matchType === "exact" || matchType === "inflection",
+    );
+    if (result) return result.entry;
+  }
+  return null;
+}
+
+function readerWordNode(token) {
+  if (!token.isWord) return node("span", { text: token.text });
+  const button = node("button", {
+    className: "reader-word",
+    text: token.text,
+    type: "button",
+    ariaLabel: `查看词条：${token.text}`,
+    attributes: { lang: "fr" },
+  });
+  button.addEventListener("click", () => {
+    if (!dictionary) {
+      showToast("词典仍在载入，请稍后再试");
+      return;
+    }
+    const entry = findReaderEntry(token.lookupCandidates);
+    if (!entry) {
+      showToast(`词典里还没有“${token.text}”`);
+      return;
+    }
+    openEntry(entry.id);
+  });
+  return button;
+}
+
+function readerSentenceCard(sentence, index) {
+  const speakButton = node("button", {
+    className: "reader-speak",
+    text: "♪ 朗读本句",
+    type: "button",
+    ariaLabel: `朗读第 ${index + 1} 句`,
+  });
+  speakButton.addEventListener("click", () => speakFrench(sentence.text));
+  return node("article", { className: "reader-sentence-card" }, [
+    node("div", { className: "reader-sentence-header" }, [
+      node("span", { className: "reader-sentence-number", text: `第 ${index + 1} 句` }),
+      speakButton,
+    ]),
+    node(
+      "p",
+      { className: "reader-sentence-text", attributes: { lang: "fr" } },
+      sentence.tokens.map(readerWordNode),
+    ),
+  ]);
+}
+
+function renderReader() {
+  const totalWords = readerSentences.reduce((total, sentence) => total + sentence.wordCount, 0);
+  elements.readerSentences.replaceChildren(
+    ...readerSentences.map((sentence, index) => readerSentenceCard(sentence, index)),
+  );
+  elements.readerSentenceCount.textContent = readerSentences.length
+    ? `${readerSentences.length} 句 · ${totalWords} 个词`
+    : "";
+  elements.readerResults.hidden = readerSentences.length === 0;
+  elements.readerEmpty.hidden = readerSentences.length !== 0;
+}
+
+function analyzeReader({ announce = true } = {}) {
+  const value = elements.readerInput.value;
+  saveReaderDraft(value);
+  readerSentences = segmentFrenchText(value);
+  renderReader();
+  if (!readerSentences.length) {
+    if (announce) showToast("请先输入一段法语文本");
+    elements.readerInput.focus();
+  } else if (announce) {
+    showToast(`已拆分为 ${readerSentences.length} 句`);
+  }
+}
+
+function clearReader() {
+  window.speechSynthesis?.cancel();
+  elements.readerInput.value = "";
+  saveReaderDraft("");
+  readerSentences = [];
+  renderReader();
+  elements.readerInput.focus();
+}
+
+function readTextFile(file) {
+  if (typeof file.text === "function") return file.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result ?? "")), { once: true });
+    reader.addEventListener("error", () => reject(reader.error), { once: true });
+    reader.readAsText(file, "UTF-8");
+  });
+}
+
+async function importReaderFile() {
+  const [file] = elements.readerFile.files ?? [];
+  elements.readerFile.value = "";
+  if (!file) return;
+  if (!file.name.toLocaleLowerCase().endsWith(".txt")) {
+    showToast("当前只支持 .txt 文本文件");
+    return;
+  }
+  if (file.size > 1024 * 1024) {
+    showToast("文件不能超过 1 MB");
+    return;
+  }
+  try {
+    const value = await readTextFile(file);
+    if (!value.trim() || value.includes("\0")) throw new Error("Invalid text file");
+    elements.readerInput.value = value.slice(0, 100_000);
+    analyzeReader({ announce: false });
+    showToast(`已导入 ${file.name}`);
+  } catch (error) {
+    console.warn("Unable to import reader text", error);
+    showToast("无法读取这个文本文件");
+  }
 }
 
 function chineseGlossaryCard(entry) {
@@ -499,24 +634,30 @@ function renderFavorites() {
 }
 
 function switchView(viewId) {
-  const dictionaryActive = viewId === "dictionaryView";
-  elements.dictionaryView.hidden = !dictionaryActive;
-  elements.favoritesView.hidden = dictionaryActive;
+  for (const candidate of ["dictionaryView", "readerView", "favoritesView"]) {
+    elements[candidate].hidden = candidate !== viewId;
+  }
   document.querySelectorAll(".nav-item").forEach((button) => {
     const active = button.dataset.view === viewId;
     button.classList.toggle("active", active);
     if (active) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   });
-  if (!dictionaryActive) renderFavorites();
+  if (viewId === "favoritesView") renderFavorites();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function fillSourceDetails(pack) {
-  elements.sourceName.textContent = pack.source.name;
+  const supplementSources = pack.supplementSources ?? [];
+  elements.sourceName.textContent = [pack.source, ...supplementSources]
+    .map((source) => source.name)
+    .join(" + ");
   elements.sourceRevision.textContent = pack.source.revision;
   const enrichmentLicenses = (pack.enrichmentSources ?? []).map((source) => source.license);
-  elements.sourceLicense.textContent = [...new Set([pack.source.license, ...enrichmentLicenses])].join(" / ");
+  const supplementLicenses = supplementSources.map((source) => source.license);
+  elements.sourceLicense.textContent = [
+    ...new Set([pack.source.license, ...enrichmentLicenses, ...supplementLicenses]),
+  ].join(" / ");
   elements.sourceCount.textContent = new Intl.NumberFormat("zh-CN").format(pack.entryCount);
   elements.sourceChineseCount.textContent = pack.enrichedEntryCount
     ? `${new Intl.NumberFormat("zh-CN").format(pack.enrichedEntryCount)} 个法语词条`
@@ -582,6 +723,13 @@ function bindEvents() {
     const button = event.target.closest("button[data-query]");
     if (button) searchFor(button.dataset.query);
   });
+  elements.readerInput.addEventListener("input", () => {
+    saveReaderDraft(elements.readerInput.value);
+  });
+  elements.readerAnalyzeButton.addEventListener("click", () => analyzeReader());
+  elements.readerClearButton.addEventListener("click", clearReader);
+  elements.readerImportButton.addEventListener("click", () => elements.readerFile.click());
+  elements.readerFile.addEventListener("change", importReaderFile);
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.view));
   });
@@ -618,6 +766,7 @@ async function registerServiceWorker() {
 }
 
 applyBranding(defaultBrand);
+elements.readerInput.value = loadReaderDraft();
 bindEvents();
 configureInstallHint();
 loadBranding();

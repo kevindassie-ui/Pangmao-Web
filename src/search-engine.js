@@ -105,7 +105,6 @@ function prepareEntry(entry) {
   return {
     entry,
     forms: entry.forms.map(normalizeFrench),
-    definitions: entry.senses.flatMap((sense) => sense.definitions).map(normalizeFrench),
     chineseBySense: entry.senses.map((sense) => sense.chinese),
   };
 }
@@ -157,9 +156,6 @@ function matchFrench(item, query) {
       } else if (candidate.kind === "exact" && form.startsWith(candidate.value)) {
         candidateScore = 10;
         candidateType = "prefix";
-      } else if (candidate.kind === "exact" && form.includes(candidate.value)) {
-        candidateScore = 20;
-        candidateType = "contains";
       }
       if (candidateScore < score) {
         score = candidateScore;
@@ -169,13 +165,6 @@ function matchFrench(item, query) {
     });
   });
 
-  if (score === Number.POSITIVE_INFINITY) {
-    const normalized = candidates[0]?.value ?? "";
-    if (normalized && item.definitions.some((definition) => definition.includes(normalized))) {
-      score = 30;
-      matchType = "definition";
-    }
-  }
   return { score, matchType, matchedForm };
 }
 

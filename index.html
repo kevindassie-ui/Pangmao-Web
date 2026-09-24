@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="胖猫" />
     <meta
       name="description"
-      content="胖猫法语学习：可离线使用的法中双向词典。"
+      content="胖猫法语学习：可离线使用的法中双向词典与法语 Reader。"
     />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -128,6 +128,50 @@
           </section>
         </section>
 
+        <section id="readerView" class="view" aria-labelledby="readerTitle" hidden>
+          <div class="page-heading">
+            <span class="eyebrow">粘贴或导入法语文本</span>
+            <h2 id="readerTitle">阅读</h2>
+            <p>胖猫会按句子和单词拆分文本。点击朗读按钮可听整句，点击单词可打开词典。</p>
+          </div>
+
+          <div class="reader-composer">
+            <label for="readerInput">法语文本</label>
+            <textarea
+              id="readerInput"
+              rows="7"
+              maxlength="100000"
+              lang="fr"
+              autocapitalize="sentences"
+              spellcheck="true"
+              placeholder="例如：J’ai vu une affiche rouge dans la rue."
+            ></textarea>
+            <div class="reader-actions">
+              <button id="readerImportButton" class="secondary-button" type="button">导入 .txt</button>
+              <button id="readerAnalyzeButton" class="primary-button" type="button">开始阅读</button>
+              <button id="readerClearButton" class="text-button reader-clear" type="button">清空</button>
+            </div>
+            <input id="readerFile" type="file" accept=".txt,text/plain" hidden />
+            <p class="reader-format-note">当前支持粘贴文本和 UTF-8 文本文件（.txt，最大 1 MB）。草稿只保存在这台设备上。</p>
+          </div>
+
+          <div id="readerEmpty" class="state-card reader-empty">
+            <span class="state-symbol" aria-hidden="true">Aa</span>
+            <div>
+              <strong>在这里读一段法语</strong>
+              <p>先粘贴文字或导入 .txt 文件，然后点击“开始阅读”。</p>
+            </div>
+          </div>
+
+          <section id="readerResults" hidden>
+            <div class="section-heading">
+              <h3>逐句阅读</h3>
+              <span id="readerSentenceCount"></span>
+            </div>
+            <div id="readerSentences" class="reader-sentences"></div>
+          </section>
+        </section>
+
         <section id="favoritesView" class="view" aria-labelledby="favoritesTitle" hidden>
           <div class="page-heading">
             <span class="eyebrow">保存在这台设备上</span>
@@ -158,6 +202,13 @@
           </svg>
           <span>词典</span>
         </button>
+        <button class="nav-item" type="button" data-view="readerView">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M5 4h14v16H5z"></path>
+            <path d="M8 8h8M8 12h8M8 16h5"></path>
+          </svg>
+          <span>阅读</span>
+        </button>
         <button class="nav-item" type="button" data-view="favoritesView">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"></path>
@@ -182,7 +233,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <header class="sheet-header">
         <div>
-          <span class="eyebrow">胖猫 Web 0.2</span>
+          <span class="eyebrow">胖猫 Web 0.3</span>
           <h2 id="aboutTitle">关于与数据来源</h2>
         </div>
         <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
@@ -197,7 +248,7 @@
           <div><dt>中文解释</dt><dd id="sourceChineseCount">—</dd></div>
           <div><dt>中文补充查询</dt><dd id="sourceFallback">—</dd></div>
         </dl>
-        <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取。推测释义始终单独标记，不会冒充直接词典释义。</p>
+        <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取；经复核的缺词补充来自 CFDICT。推测释义始终单独标记，不会冒充直接词典释义。</p>
       </div>
     </article>
 

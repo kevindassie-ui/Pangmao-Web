@@ -95,7 +95,8 @@ body.sheet-open {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -105,7 +106,8 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent);
   outline-offset: 2px;
 }
@@ -456,7 +458,8 @@ input:focus-visible {
   margin: 22px 3px 10px;
 }
 
-.section-heading h2 {
+.section-heading h2,
+.section-heading h3 {
   margin: 0;
   font-size: 1rem;
 }
@@ -615,6 +618,157 @@ input:focus-visible {
   line-height: 1.5;
 }
 
+.reader-composer {
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(32, 52, 42, 0.045);
+}
+
+.reader-composer > label {
+  display: block;
+  margin: 0 0 8px 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.reader-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 152px;
+  resize: vertical;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  outline: 0;
+  background: var(--background);
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.reader-composer textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.reader-composer textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+}
+
+.reader-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 13px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.primary-button {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.secondary-button {
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--primary-strong);
+}
+
+.reader-clear {
+  min-height: 42px;
+  margin: 0 2px;
+  padding: 8px 7px;
+}
+
+.reader-format-note {
+  margin: 12px 2px 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.reader-empty {
+  margin-top: 14px;
+}
+
+.reader-sentences {
+  display: grid;
+  gap: 11px;
+}
+
+.reader-sentence-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(32, 52, 42, 0.045);
+}
+
+.reader-sentence-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 11px;
+}
+
+.reader-sentence-number {
+  color: var(--muted);
+  font-size: 0.73rem;
+  font-weight: 720;
+}
+
+.reader-speak {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--primary-strong);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reader-sentence-text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 1.05rem;
+  line-height: 2.05;
+}
+
+.reader-word {
+  display: inline;
+  margin: 0;
+  padding: 2px 3px;
+  border: 0;
+  border-bottom: 1px dotted color-mix(in srgb, var(--primary) 58%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface-strong) 60%, transparent);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.reader-word:active {
+  background: var(--surface-strong);
+}
+
 .heart {
   font-size: 1.7rem;
 }
@@ -664,7 +818,7 @@ input:focus-visible {
   bottom: 0;
   left: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   min-height: calc(64px + var(--safe-bottom));
   padding: 5px max(18px, calc((100% - 600px) / 2)) var(--safe-bottom);
   border-top: 1px solid var(--border);
