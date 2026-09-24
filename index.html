@@ -11,10 +11,10 @@
       name="description"
       content="胖猫法语学习：可离线使用的法中双向词典与法语 Reader。"
     />
-    <link rel="manifest" href="./manifest.webmanifest?v=0.3.1" />
-    <link rel="apple-touch-icon" href="./icons/icon-192.png?v=0.3.1" />
-    <link rel="icon" href="./icons/icon-192.png?v=0.3.1" />
-    <link rel="stylesheet" href="./styles.css?v=0.3.1" />
+    <link rel="manifest" href="./manifest.webmanifest?v=0.3.2" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png?v=0.3.2" />
+    <link rel="icon" href="./icons/icon-192.png?v=0.3.2" />
+    <link rel="stylesheet" href="./styles.css?v=0.3.2" />
     <title>胖猫 · 学法语</title>
   </head>
   <body>
@@ -83,6 +83,8 @@
               <h2 id="welcomeTitle">两种语言，都可以直接搜索</h2>
               <p id="welcomeBody">输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。</p>
             </div>
+            <img id="seasonalOsmanthus" class="seasonal-osmanthus" alt="" aria-hidden="true" hidden />
+            <img id="seasonalMooncakes" class="seasonal-mooncakes" alt="" aria-hidden="true" hidden />
             <img id="welcomeMascot" class="welcome-mascot" alt="陪伴学习法语的小鹿" hidden />
           </section>
 
@@ -233,7 +235,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <header class="sheet-header">
         <div>
-          <span class="eyebrow">胖猫 Web <span id="webVersion">0.3.1</span></span>
+          <span class="eyebrow">胖猫 Web <span id="webVersion">0.3.2</span></span>
           <h2 id="aboutTitle">关于与数据来源</h2>
         </div>
         <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
@@ -261,13 +263,21 @@
             <option value="">正在查找法语声音</option>
           </select>
           <p id="voiceStatus" class="voice-status" role="status">正在读取设备上的法语声音…</p>
-          <p class="fine-print">胖猫只会使用设备明确标记为法语的声音，不会用中文声音朗读法语。可用声音由 Safari、浏览器和手机系统提供。</p>
+          <details id="voiceHelp" class="voice-help">
+            <summary>没有声音？安装法语声音</summary>
+            <div>
+              <p><strong>Android：</strong>设置 → 无障碍（或“更多设置”）→ 文字转语音输出 → 安装语音数据 → 法语（法国）。安装后从 Chrome 或主屏幕重新打开胖猫。</p>
+              <p><strong>iPhone：</strong>设置 → 辅助功能 → 朗读内容 → 声音 → 法语 → 下载一个法国法语声音。安装后重新打开胖猫。</p>
+              <p>不同手机的菜单名称可能略有差异。微信、聊天软件等内置浏览器有时不会返回系统声音；此时请改用 Safari、Chrome 或已安装到主屏幕的胖猫。</p>
+            </div>
+          </details>
+          <p class="fine-print">胖猫会在点击朗读时再次等待系统加载声音，而且只接受明确标记为法语的声音，不会退回中文声音。可用声音由 Safari、Chrome 和手机系统提供。</p>
         </section>
-        <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取；经复核的缺词补充来自 CFDICT。推测释义始终单独标记，不会冒充直接词典释义。</p>
+        <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取；经复核的缺词补充来自 CFDICT 和胖猫人工校订。推测释义始终单独标记，不会冒充直接词典释义。</p>
       </div>
     </article>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script type="module" src="./src/app.js?v=0.3.1"></script>
+    <script type="module" src="./src/app.js?v=0.3.2"></script>
   </body>
 </html>

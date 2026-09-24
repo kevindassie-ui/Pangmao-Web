@@ -1,7 +1,12 @@
-import { createChineseFallbackLoader } from "./chinese-fallback.js?v=0.3.1";
-import { segmentFrenchText } from "./reader.js?v=0.3.1";
-import { WEB_VERSION, versionedAsset } from "./release.js?v=0.3.1";
-import { containsHan, createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js?v=0.3.1";
+import { createChineseFallbackLoader } from "./chinese-fallback.js?v=0.3.2";
+import { segmentFrenchText } from "./reader.js?v=0.3.2";
+import { WEB_VERSION, versionedAsset } from "./release.js?v=0.3.2";
+import {
+  createDictionaryIndex,
+  getEntry,
+  needsExactChineseFallback,
+  searchDictionary,
+} from "./search-engine.js?v=0.3.2";
 import {
   dismissInstallHint,
   isInstallHintDismissed,
@@ -11,13 +16,15 @@ import {
   saveFrenchVoiceId,
   saveFavorites,
   saveReaderDraft,
-} from "./storage.js?v=0.3.1";
+} from "./storage.js?v=0.3.2";
 import {
+  availableVoices,
   listFrenchVoices,
   selectFrenchVoice,
   speakWithFrenchVoice,
+  waitForFrenchVoice,
   voiceIdentifier,
-} from "./tts.js?v=0.3.1";
+} from "./tts.js?v=0.3.2";
 
 const elements = Object.fromEntries(
   [
@@ -60,6 +67,8 @@ const elements = Object.fromEntries(
     "readerView",
     "searchForm",
     "searchInput",
+    "seasonalMooncakes",
+    "seasonalOsmanthus",
     "sheetBackdrop",
     "sourceCount",
     "sourceChineseCount",
@@ -76,6 +85,7 @@ const elements = Object.fromEntries(
     "welcomeMascot",
     "welcomeTitle",
     "voiceSelect",
+    "voiceHelp",
     "voiceStatus",
     "voiceTestButton",
     "webVersion",
@@ -109,6 +119,7 @@ let readerSentences = [];
 let preferredFrenchVoiceId = loadFrenchVoiceId();
 let voiceRefreshTimers = [];
 let activeFrenchUtterance = null;
+let speechRequestGeneration = 0;
 const lookupChineseFallback = createChineseFallbackLoader({ cacheTag: WEB_VERSION });
 
 const defaultBrand = {
@@ -123,6 +134,7 @@ const defaultBrand = {
   welcomeEyebrow: "法语 ⇄ 中文",
   welcomeTitle: "两种语言，都可以直接搜索",
   welcomeBody: "输入法语，查看中文含义；输入中文，找到对应的法语词。词典首次载入后可离线使用。",
+  seasonal: null,
 };
 
 function node(tagName, options = {}, children = []) {
@@ -150,6 +162,30 @@ function applyBranding(value) {
   elements.welcomeEyebrow.textContent = brand.welcomeEyebrow;
   elements.welcomeTitle.textContent = brand.welcomeTitle;
   elements.welcomeBody.textContent = brand.welcomeBody;
+  const seasonal = brand.seasonal && typeof brand.seasonal === "object" ? brand.seasonal : null;
+  if (seasonal?.id && seasonal.osmanthus && seasonal.mooncakes) {
+    document.documentElement.dataset.seasonal = seasonal.id;
+    document.documentElement.style.setProperty(
+      "--seasonal-osmanthus-image",
+      `url("${seasonal.osmanthus}")`,
+    );
+    document.documentElement.style.setProperty(
+      "--seasonal-mooncakes-image",
+      `url("${seasonal.mooncakes}")`,
+    );
+    elements.seasonalOsmanthus.src = seasonal.osmanthus;
+    elements.seasonalMooncakes.src = seasonal.mooncakes;
+    elements.seasonalOsmanthus.hidden = false;
+    elements.seasonalMooncakes.hidden = false;
+  } else {
+    delete document.documentElement.dataset.seasonal;
+    document.documentElement.style.removeProperty("--seasonal-osmanthus-image");
+    document.documentElement.style.removeProperty("--seasonal-mooncakes-image");
+    elements.seasonalOsmanthus.hidden = true;
+    elements.seasonalMooncakes.hidden = true;
+    elements.seasonalOsmanthus.removeAttribute("src");
+    elements.seasonalMooncakes.removeAttribute("src");
+  }
   if (brand.mascot) {
     elements.welcomeMascot.src = brand.mascot;
     elements.welcomeMascot.hidden = false;
@@ -170,13 +206,13 @@ async function loadBranding() {
   }
 }
 
-function showToast(message) {
+function showToast(message, duration = 2_200) {
   window.clearTimeout(toastTimer);
   elements.toast.textContent = message;
   elements.toast.hidden = false;
   toastTimer = window.setTimeout(() => {
     elements.toast.hidden = true;
-  }, 2200);
+  }, duration);
 }
 
 function setStatus(kind, message) {
@@ -208,14 +244,18 @@ function refreshFrenchVoiceControls() {
     return [];
   }
 
-  const voices = listFrenchVoices(window.speechSynthesis.getVoices());
+  const allVoices = availableVoices(window.speechSynthesis);
+  const voices = listFrenchVoices(allVoices);
   elements.voiceSelect.replaceChildren();
   if (!voices.length) {
     elements.voiceSelect.append(new Option("未找到法语声音", ""));
     elements.voiceSelect.disabled = true;
-    elements.voiceTestButton.disabled = true;
-    elements.voiceStatus.textContent =
-      "未找到系统法语声音。请在手机的语音或辅助功能设置中安装法语声音，然后重新打开胖猫。";
+    elements.voiceTestButton.disabled = false;
+    elements.voiceTestButton.textContent = "重新检测";
+    elements.voiceHelp.open = true;
+    elements.voiceStatus.textContent = allVoices.length
+      ? `浏览器返回了 ${allVoices.length} 个系统声音，但没有法语声音。请按下方步骤安装法语（法国）声音，然后重新检测。`
+      : "浏览器暂未返回任何系统声音。请先从 Safari、Chrome 或主屏幕启动胖猫，再重新检测；若仍为空，请安装法语声音。";
     return [];
   }
 
@@ -227,6 +267,8 @@ function refreshFrenchVoiceControls() {
   elements.voiceSelect.value = preferredFrenchVoiceId;
   elements.voiceSelect.disabled = false;
   elements.voiceTestButton.disabled = false;
+  elements.voiceTestButton.textContent = "试听";
+  elements.voiceHelp.open = false;
   elements.voiceStatus.textContent = `当前只使用法语声音：${voiceLabel(selected)}`;
   return voices;
 }
@@ -236,9 +278,13 @@ function initializeFrenchVoices() {
   refreshFrenchVoiceControls();
   if (!speechSupported()) return;
   window.speechSynthesis.addEventListener?.("voiceschanged", refreshFrenchVoiceControls);
-  voiceRefreshTimers = [250, 1_000, 2_500].map((delay) =>
+  voiceRefreshTimers = [250, 1_000, 2_500, 5_000].map((delay) =>
     window.setTimeout(refreshFrenchVoiceControls, delay),
   );
+  window.addEventListener("pageshow", refreshFrenchVoiceControls);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshFrenchVoiceControls();
+  });
 }
 
 function grammarFacts(entry) {
@@ -358,19 +404,20 @@ async function runSearch({ focus = false } = {}) {
   } else {
     const results = searchDictionary(dictionary, query);
     renderResults(results);
-    if (results.length === 0 && containsHan(query)) {
-      elements.emptyState.hidden = true;
+    if (needsExactChineseFallback(query, results)) {
+      if (results.length === 0) elements.emptyState.hidden = true;
       elements.fallbackState.hidden = false;
       try {
         const fallbackResults = await lookupChineseFallback(query);
         if (generation !== searchGeneration || elements.searchInput.value.trim() !== query) return;
         elements.fallbackState.hidden = true;
-        renderFallbackResults(query, fallbackResults);
+        if (fallbackResults.length) renderFallbackResults(query, fallbackResults);
+        else if (results.length === 0) renderResults([]);
       } catch (error) {
         console.warn("Unable to load Chinese fallback", error);
         if (generation !== searchGeneration) return;
         elements.fallbackState.hidden = true;
-        elements.emptyState.hidden = false;
+        if (results.length === 0) elements.emptyState.hidden = false;
       }
     }
   }
@@ -384,12 +431,35 @@ function searchFor(query) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function speakFrench(text) {
+async function speakFrench(text) {
+  const synth = speechSupported() ? window.speechSynthesis : null;
+  const requestGeneration = ++speechRequestGeneration;
+  if (!synth) {
+    showToast("这台设备暂不支持网页语音播放");
+    return;
+  }
+
+  let selectedVoice = selectFrenchVoice(availableVoices(synth), preferredFrenchVoiceId);
+  if (!selectedVoice) {
+    showToast("正在重新读取设备上的法语声音…");
+    selectedVoice = await waitForFrenchVoice({
+      synth,
+      preferredIdentifier: preferredFrenchVoiceId,
+    });
+    if (requestGeneration !== speechRequestGeneration) return;
+    refreshFrenchVoiceControls();
+  }
+  if (!selectedVoice) {
+    showToast("设备没有提供法语声音；请在“关于”中按步骤安装后重新检测", 5_200);
+    return;
+  }
+
   const result = speakWithFrenchVoice({
-    synth: speechSupported() ? window.speechSynthesis : null,
+    synth,
     Utterance: window.SpeechSynthesisUtterance,
     text,
     preferredIdentifier: preferredFrenchVoiceId,
+    selectedVoice,
     onError: (event) => {
       if (activeFrenchUtterance === event.currentTarget) activeFrenchUtterance = null;
       if (event.error !== "canceled" && event.error !== "interrupted") {
@@ -405,11 +475,18 @@ function speakFrench(text) {
     showToast(
       result.reason === "no-french-voice"
         ? "没有找到法语声音；请在“关于”中查看语音设置"
-        : "这台设备暂不支持语音播放",
+        : "法语发音无法启动；请在“关于”中重新检测声音",
+      4_200,
     );
     return;
   }
   activeFrenchUtterance = result.utterance;
+}
+
+function cancelFrenchSpeech() {
+  speechRequestGeneration += 1;
+  activeFrenchUtterance = null;
+  window.speechSynthesis?.cancel();
 }
 
 function findReaderEntry(candidates) {
@@ -494,7 +571,7 @@ function analyzeReader({ announce = true } = {}) {
 }
 
 function clearReader() {
-  window.speechSynthesis?.cancel();
+  cancelFrenchSpeech();
   elements.readerInput.value = "";
   saveReaderDraft("");
   readerSentences = [];
@@ -661,7 +738,7 @@ function openEntry(entryId, { preserveFocus = false } = {}) {
 
 function closeEntry({ restoreFocus = true } = {}) {
   if (elements.entrySheet.hidden) return;
-  window.speechSynthesis?.cancel();
+  cancelFrenchSpeech();
   elements.entrySheet.hidden = true;
   elements.sheetBackdrop.hidden = true;
   elements.entryContent.replaceChildren();
@@ -727,14 +804,21 @@ function switchView(viewId) {
 
 function fillSourceDetails(pack) {
   const supplementSources = pack.supplementSources ?? [];
-  elements.sourceName.textContent = [pack.source, ...supplementSources]
+  const editorialSources = pack.editorialSources ?? [];
+  elements.sourceName.textContent = [pack.source, ...supplementSources, ...editorialSources]
     .map((source) => source.name)
     .join(" + ");
   elements.sourceRevision.textContent = pack.source.revision;
   const enrichmentLicenses = (pack.enrichmentSources ?? []).map((source) => source.license);
   const supplementLicenses = supplementSources.map((source) => source.license);
+  const editorialLicenses = editorialSources.map((source) => source.license);
   elements.sourceLicense.textContent = [
-    ...new Set([pack.source.license, ...enrichmentLicenses, ...supplementLicenses]),
+    ...new Set([
+      pack.source.license,
+      ...enrichmentLicenses,
+      ...supplementLicenses,
+      ...editorialLicenses,
+    ]),
   ].join(" / ");
   elements.sourceCount.textContent = new Intl.NumberFormat("zh-CN").format(pack.entryCount);
   elements.sourceChineseCount.textContent = pack.enrichedEntryCount

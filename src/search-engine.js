@@ -211,6 +211,14 @@ export function searchDictionary(index, rawQuery, limit = 40) {
   return ranked.slice(0, limit);
 }
 
+export function needsExactChineseFallback(rawQuery, results) {
+  const query = String(rawQuery ?? "").trim();
+  return (
+    containsHan(query) &&
+    !(results ?? []).some((result) => result?.matchType === "exact")
+  );
+}
+
 export function getEntry(index, entryId) {
   return index.byId.get(entryId) ?? null;
 }

@@ -336,6 +336,7 @@ textarea:focus-visible {
 }
 
 .welcome-card {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -356,6 +357,8 @@ textarea:focus-visible {
 }
 
 .welcome-mascot {
+  position: relative;
+  z-index: 2;
   align-self: end;
   width: clamp(86px, 24vw, 132px);
   max-height: 176px;
@@ -363,6 +366,35 @@ textarea:focus-visible {
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 9px 13px rgba(78, 25, 22, 0.18));
+}
+
+.seasonal-osmanthus,
+.seasonal-mooncakes {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.seasonal-osmanthus[hidden],
+.seasonal-mooncakes[hidden] {
+  display: none;
+}
+
+.seasonal-osmanthus {
+  top: -45px;
+  right: 58px;
+  width: clamp(128px, 35vw, 202px);
+  opacity: 0.35;
+  transform: rotate(7deg);
+}
+
+.seasonal-mooncakes {
+  right: clamp(82px, 21vw, 126px);
+  bottom: -15px;
+  width: clamp(68px, 18vw, 102px);
+  opacity: 0.92;
+  filter: drop-shadow(0 6px 8px rgba(83, 30, 21, 0.2));
 }
 
 .welcome-mascot[hidden] {
@@ -619,11 +651,31 @@ textarea:focus-visible {
 }
 
 .reader-composer {
+  position: relative;
+  overflow: hidden;
   padding: 17px;
   border: 1px solid var(--border);
   border-radius: var(--radius-large);
   background: var(--surface);
   box-shadow: 0 4px 14px rgba(32, 52, 42, 0.045);
+}
+
+:root[data-seasonal="mid-autumn"] .reader-composer::after {
+  position: absolute;
+  top: -25px;
+  right: -24px;
+  width: 118px;
+  height: 106px;
+  background: var(--seasonal-osmanthus-image) center / contain no-repeat;
+  content: "";
+  opacity: 0.09;
+  pointer-events: none;
+  transform: rotate(8deg);
+}
+
+.reader-composer > * {
+  position: relative;
+  z-index: 1;
 }
 
 .reader-composer > label {
@@ -701,7 +753,26 @@ textarea:focus-visible {
 }
 
 .reader-empty {
+  position: relative;
+  overflow: hidden;
   margin-top: 14px;
+}
+
+:root[data-seasonal="mid-autumn"] .reader-empty::after {
+  position: absolute;
+  right: -8px;
+  bottom: -13px;
+  width: 82px;
+  height: 64px;
+  background: var(--seasonal-mooncakes-image) center / contain no-repeat;
+  content: "";
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.reader-empty > * {
+  position: relative;
+  z-index: 1;
 }
 
 .reader-sentences {
@@ -1137,6 +1208,32 @@ textarea:focus-visible {
 .voice-settings button:disabled {
   cursor: not-allowed;
   opacity: 0.62;
+}
+
+.voice-help {
+  margin-top: 13px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface);
+}
+
+.voice-help summary {
+  padding: 12px 13px;
+  color: var(--primary-strong);
+  font-size: 0.8rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.voice-help > div {
+  padding: 0 13px 12px;
+}
+
+.voice-help p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
 }
 
 .voice-status {

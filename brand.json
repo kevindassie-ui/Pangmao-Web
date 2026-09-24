@@ -6,6 +6,11 @@
   "icon": "./icons/icon-192.png",
   "iconAlt": "抱着红书的小鹿图标",
   "mascot": "./images/deer-mascot.png",
+  "seasonal": {
+    "id": "mid-autumn",
+    "osmanthus": "./images/osmanthus-sprig.png",
+    "mooncakes": "./images/mooncakes.png"
+  },
   "themeColor": "#a93239",
   "welcomeEyebrow": "今天也学一点法语",
   "welcomeTitle": "小鹿陪你，慢慢把法语学会",

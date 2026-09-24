@@ -1,4 +1,4 @@
-const RELEASE_VERSION = "0.3.1";
+const RELEASE_VERSION = "0.3.2";
 const CACHE_NAME = `pangmao-web-v${RELEASE_VERSION}`;
 
 function versioned(path) {
@@ -24,6 +24,8 @@ const APP_SHELL = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./images/deer-mascot.png",
+  "./images/mooncakes.png",
+  "./images/osmanthus-sprig.png",
 ];
 
 function scopedUrl(path) {

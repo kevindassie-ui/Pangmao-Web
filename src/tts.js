@@ -39,11 +39,55 @@ export function selectFrenchVoice(voices, preferredIdentifier = "") {
   );
 }
 
+export function availableVoices(synth) {
+  if (!synth || typeof synth.getVoices !== "function") return [];
+  try {
+    return Array.from(synth.getVoices() ?? []);
+  } catch {
+    return [];
+  }
+}
+
+export function waitForFrenchVoice({
+  synth,
+  preferredIdentifier = "",
+  timeoutMs = 1_800,
+  pollIntervalMs = 120,
+}) {
+  const current = selectFrenchVoice(availableVoices(synth), preferredIdentifier);
+  if (current || !synth) return Promise.resolve(current);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let pollTimer = null;
+    let timeoutTimer = null;
+
+    const finish = (voice) => {
+      if (settled) return;
+      settled = true;
+      if (pollTimer !== null) globalThis.clearInterval(pollTimer);
+      if (timeoutTimer !== null) globalThis.clearTimeout(timeoutTimer);
+      synth.removeEventListener?.("voiceschanged", check);
+      resolve(voice);
+    };
+    const check = () => {
+      const voice = selectFrenchVoice(availableVoices(synth), preferredIdentifier);
+      if (voice) finish(voice);
+    };
+
+    synth.addEventListener?.("voiceschanged", check);
+    pollTimer = globalThis.setInterval(check, Math.max(20, pollIntervalMs));
+    timeoutTimer = globalThis.setTimeout(() => finish(null), Math.max(0, timeoutMs));
+    check();
+  });
+}
+
 export function speakWithFrenchVoice({
   synth,
   Utterance,
   text,
   preferredIdentifier = "",
+  selectedVoice = null,
   rate = 0.82,
   onError = null,
   onEnd = null,
@@ -51,7 +95,9 @@ export function speakWithFrenchVoice({
   if (!synth || typeof Utterance !== "function") {
     return { ok: false, reason: "unsupported", voice: null, utterance: null };
   }
-  const voice = selectFrenchVoice(synth.getVoices(), preferredIdentifier);
+  const voice = isFrenchVoice(selectedVoice)
+    ? selectedVoice
+    : selectFrenchVoice(availableVoices(synth), preferredIdentifier);
   if (!voice) {
     return { ok: false, reason: "no-french-voice", voice: null, utterance: null };
   }
@@ -60,10 +106,16 @@ export function speakWithFrenchVoice({
   utterance.voice = voice;
   utterance.lang = voice.lang || "fr-FR";
   utterance.rate = rate;
+  utterance.pitch = 1;
+  utterance.volume = 1;
   if (typeof onError === "function") utterance.onerror = onError;
   if (typeof onEnd === "function") utterance.onend = onEnd;
-  synth.cancel();
-  if (typeof synth.resume === "function") synth.resume();
-  synth.speak(utterance);
+  try {
+    synth.cancel();
+    if (typeof synth.resume === "function") synth.resume();
+    synth.speak(utterance);
+  } catch {
+    return { ok: false, reason: "speak-failed", voice, utterance };
+  }
   return { ok: true, reason: "", voice, utterance };
 }
