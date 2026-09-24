@@ -1,4 +1,4 @@
-const RELEASE_VERSION = "0.3.2";
+const RELEASE_VERSION = "0.3.3";
 const CACHE_NAME = `pangmao-web-v${RELEASE_VERSION}`;
 
 function versioned(path) {

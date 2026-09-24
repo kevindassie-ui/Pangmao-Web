@@ -2,6 +2,7 @@ const FAVORITES_KEY = "pangmao.web.favorites.v1";
 const INSTALL_HINT_KEY = "pangmao.web.install-hint-dismissed.v1";
 const READER_DRAFT_KEY = "pangmao.web.reader-draft.v1";
 const FRENCH_VOICE_KEY = "pangmao.web.french-voice.v1";
+const FRENCH_VOICE_PROFILE_KEY = "pangmao.web.french-voice-profile.v1";
 
 function readJson(storage, key, fallback) {
   try {
@@ -73,6 +74,38 @@ export function loadFrenchVoiceId(storage = window.localStorage) {
 export function saveFrenchVoiceId(value, storage = window.localStorage) {
   try {
     storage.setItem(FRENCH_VOICE_KEY, String(value ?? ""));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeVoiceIdentifier(value) {
+  return typeof value === "string" ? value : "";
+}
+
+export function loadFrenchVoiceProfile(storage = window.localStorage) {
+  const value = readJson(storage, FRENCH_VOICE_PROFILE_KEY, {});
+  const voices = value && typeof value.voices === "object" ? value.voices : {};
+  return {
+    activeGender: value?.activeGender === "male" ? "male" : "female",
+    voices: {
+      female: sanitizeVoiceIdentifier(voices?.female),
+      male: sanitizeVoiceIdentifier(voices?.male),
+    },
+  };
+}
+
+export function saveFrenchVoiceProfile(profile, storage = window.localStorage) {
+  const normalized = {
+    activeGender: profile?.activeGender === "male" ? "male" : "female",
+    voices: {
+      female: sanitizeVoiceIdentifier(profile?.voices?.female),
+      male: sanitizeVoiceIdentifier(profile?.voices?.male),
+    },
+  };
+  try {
+    storage.setItem(FRENCH_VOICE_PROFILE_KEY, JSON.stringify(normalized));
     return true;
   } catch {
     return false;

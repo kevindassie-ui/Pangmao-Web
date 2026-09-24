@@ -1,30 +1,33 @@
-import { createChineseFallbackLoader } from "./chinese-fallback.js?v=0.3.2";
-import { segmentFrenchText } from "./reader.js?v=0.3.2";
-import { WEB_VERSION, versionedAsset } from "./release.js?v=0.3.2";
+import { createChineseFallbackLoader } from "./chinese-fallback.js?v=0.3.3";
+import { segmentFrenchText } from "./reader.js?v=0.3.3";
+import { WEB_VERSION, versionedAsset } from "./release.js?v=0.3.3";
 import {
   createDictionaryIndex,
   getEntry,
   needsExactChineseFallback,
   searchDictionary,
-} from "./search-engine.js?v=0.3.2";
+} from "./search-engine.js?v=0.3.3";
 import {
   dismissInstallHint,
   isInstallHintDismissed,
   loadFrenchVoiceId,
+  loadFrenchVoiceProfile,
   loadFavorites,
   loadReaderDraft,
   saveFrenchVoiceId,
+  saveFrenchVoiceProfile,
   saveFavorites,
   saveReaderDraft,
-} from "./storage.js?v=0.3.2";
+} from "./storage.js?v=0.3.3";
 import {
   availableVoices,
+  formatFrenchVoiceDiagnostics,
   listFrenchVoices,
   selectFrenchVoice,
   speakWithFrenchVoice,
   waitForFrenchVoice,
   voiceIdentifier,
-} from "./tts.js?v=0.3.2";
+} from "./tts.js?v=0.3.3";
 
 const elements = Object.fromEntries(
   [
@@ -85,6 +88,10 @@ const elements = Object.fromEntries(
     "welcomeMascot",
     "welcomeTitle",
     "voiceSelect",
+    "voiceApplyButton",
+    "voiceCopyButton",
+    "voiceFemaleButton",
+    "voiceMaleButton",
     "voiceHelp",
     "voiceStatus",
     "voiceTestButton",
@@ -106,6 +113,12 @@ const grammarLabels = {
   v: "动词",
 };
 
+const voiceGenderLabels = {
+  female: "女声",
+  male: "男声",
+};
+const frenchVoiceSample = "Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.";
+
 let dictionary = null;
 let favorites = loadFavorites();
 let activeEntryId = null;
@@ -116,7 +129,12 @@ let toastTimer = null;
 let loadedEntryCount = 0;
 let offlineReady = false;
 let readerSentences = [];
-let preferredFrenchVoiceId = loadFrenchVoiceId();
+const legacyFrenchVoiceId = loadFrenchVoiceId();
+let frenchVoiceProfile = loadFrenchVoiceProfile();
+let pendingFrenchVoiceId = "";
+let preferredFrenchVoiceId =
+  frenchVoiceProfile.voices[frenchVoiceProfile.activeGender] ||
+  (frenchVoiceProfile.activeGender === "female" ? legacyFrenchVoiceId : "");
 let voiceRefreshTimers = [];
 let activeFrenchUtterance = null;
 let speechRequestGeneration = 0;
@@ -235,10 +253,49 @@ function voiceLabel(voice) {
   return `${voice.name} · ${voice.lang} · ${locality}`;
 }
 
+function activeVoiceGenderLabel() {
+  return voiceGenderLabels[frenchVoiceProfile.activeGender];
+}
+
+function updateVoiceGenderControls({ disabled = false } = {}) {
+  const female = frenchVoiceProfile.activeGender === "female";
+  elements.voiceFemaleButton.setAttribute("aria-pressed", String(female));
+  elements.voiceMaleButton.setAttribute("aria-pressed", String(!female));
+  elements.voiceFemaleButton.disabled = disabled;
+  elements.voiceMaleButton.disabled = disabled;
+  elements.voiceApplyButton.textContent = `保存为${activeVoiceGenderLabel()}`;
+}
+
+function findVoiceByIdentifier(voices, identifier) {
+  if (!identifier) return null;
+  return voices.find((voice) => voiceIdentifier(voice) === identifier) ?? null;
+}
+
+function candidateVoiceForActiveProfile(voices) {
+  const gender = frenchVoiceProfile.activeGender;
+  const savedIdentifier = frenchVoiceProfile.voices[gender];
+  const saved = findVoiceByIdentifier(voices, savedIdentifier);
+  if (saved) return saved;
+
+  const pending = findVoiceByIdentifier(voices, pendingFrenchVoiceId);
+  if (pending) return pending;
+
+  if (gender === "female") {
+    const legacy = findVoiceByIdentifier(voices, legacyFrenchVoiceId);
+    if (legacy) return legacy;
+  }
+
+  const otherGender = gender === "female" ? "male" : "female";
+  const otherIdentifier = frenchVoiceProfile.voices[otherGender];
+  return voices.find((voice) => voiceIdentifier(voice) !== otherIdentifier) ?? voices[0] ?? null;
+}
+
 function refreshFrenchVoiceControls() {
+  updateVoiceGenderControls({ disabled: !speechSupported() });
   if (!speechSupported()) {
     elements.voiceSelect.disabled = true;
     elements.voiceTestButton.disabled = true;
+    elements.voiceApplyButton.disabled = true;
     elements.voiceSelect.replaceChildren(new Option("此浏览器不支持语音", ""));
     elements.voiceStatus.textContent = "此浏览器没有提供网页语音合成功能。";
     return [];
@@ -251,6 +308,7 @@ function refreshFrenchVoiceControls() {
     elements.voiceSelect.append(new Option("未找到法语声音", ""));
     elements.voiceSelect.disabled = true;
     elements.voiceTestButton.disabled = false;
+    elements.voiceApplyButton.disabled = true;
     elements.voiceTestButton.textContent = "重新检测";
     elements.voiceHelp.open = true;
     elements.voiceStatus.textContent = allVoices.length
@@ -262,15 +320,70 @@ function refreshFrenchVoiceControls() {
   voices.forEach((voice) => {
     elements.voiceSelect.append(new Option(voiceLabel(voice), voiceIdentifier(voice)));
   });
-  const selected = selectFrenchVoice(voices, preferredFrenchVoiceId);
+  const selected = candidateVoiceForActiveProfile(voices);
+  const savedIdentifier = frenchVoiceProfile.voices[frenchVoiceProfile.activeGender];
+  const savedVoice = findVoiceByIdentifier(voices, savedIdentifier);
+  pendingFrenchVoiceId = voiceIdentifier(selected);
   preferredFrenchVoiceId = voiceIdentifier(selected);
   elements.voiceSelect.value = preferredFrenchVoiceId;
   elements.voiceSelect.disabled = false;
   elements.voiceTestButton.disabled = false;
-  elements.voiceTestButton.textContent = "试听";
+  elements.voiceApplyButton.disabled = false;
+  elements.voiceTestButton.textContent = "试听当前声音";
   elements.voiceHelp.open = false;
-  elements.voiceStatus.textContent = `当前只使用法语声音：${voiceLabel(selected)}`;
+  if (savedVoice) {
+    elements.voiceStatus.textContent = `已保存${activeVoiceGenderLabel()}：${voiceLabel(savedVoice)}`;
+  } else if (savedIdentifier) {
+    elements.voiceStatus.textContent = `之前保存的${activeVoiceGenderLabel()}已不可用。请试听并保存新的声音。`;
+  } else {
+    elements.voiceStatus.textContent = `${activeVoiceGenderLabel()}尚未保存。请试听候选声音并确认选择。`;
+  }
   return voices;
+}
+
+function setActiveVoiceGender(gender) {
+  if (!(gender in voiceGenderLabels) || gender === frenchVoiceProfile.activeGender) return;
+  cancelFrenchSpeech();
+  frenchVoiceProfile = { ...frenchVoiceProfile, activeGender: gender };
+  saveFrenchVoiceProfile(frenchVoiceProfile);
+  pendingFrenchVoiceId = "";
+  preferredFrenchVoiceId = frenchVoiceProfile.voices[gender] || "";
+  refreshFrenchVoiceControls();
+}
+
+function saveActiveVoiceChoice() {
+  const identifier = elements.voiceSelect.value;
+  if (!identifier) {
+    showToast("请先选择一个法语声音");
+    return;
+  }
+  frenchVoiceProfile = {
+    ...frenchVoiceProfile,
+    voices: {
+      ...frenchVoiceProfile.voices,
+      [frenchVoiceProfile.activeGender]: identifier,
+    },
+  };
+  pendingFrenchVoiceId = identifier;
+  preferredFrenchVoiceId = identifier;
+  saveFrenchVoiceProfile(frenchVoiceProfile);
+  saveFrenchVoiceId(identifier);
+  refreshFrenchVoiceControls();
+  showToast(`已保存${activeVoiceGenderLabel()}`);
+}
+
+async function copyVoiceDiagnostics() {
+  const diagnostics = formatFrenchVoiceDiagnostics(availableVoices(window.speechSynthesis), {
+    releaseVersion: WEB_VERSION,
+    activeGender: frenchVoiceProfile.activeGender,
+    profileVoices: frenchVoiceProfile.voices,
+  });
+  try {
+    await navigator.clipboard.writeText(diagnostics);
+    showToast("声音信息已复制，可以粘贴给测试人员");
+  } catch {
+    showToast("无法复制声音信息；请截屏当前声音设置", 4_200);
+  }
 }
 
 function initializeFrenchVoices() {
@@ -928,13 +1041,25 @@ function bindEvents() {
   elements.readerImportButton.addEventListener("click", () => elements.readerFile.click());
   elements.readerFile.addEventListener("change", importReaderFile);
   elements.voiceSelect.addEventListener("change", () => {
+    pendingFrenchVoiceId = elements.voiceSelect.value;
     preferredFrenchVoiceId = elements.voiceSelect.value;
-    saveFrenchVoiceId(preferredFrenchVoiceId);
-    refreshFrenchVoiceControls();
+    const description = elements.voiceSelect.selectedOptions[0]?.textContent ?? "";
+    const saved = frenchVoiceProfile.voices[frenchVoiceProfile.activeGender] === preferredFrenchVoiceId;
+    elements.voiceStatus.textContent = saved
+      ? `已保存${activeVoiceGenderLabel()}：${description}`
+      : `候选${activeVoiceGenderLabel()}：${description}。试听后请保存。`;
   });
-  elements.voiceTestButton.addEventListener("click", () =>
-    speakFrench("Bonjour, bienvenue dans Pangmao."),
-  );
+  elements.voiceFemaleButton.addEventListener("click", () => setActiveVoiceGender("female"));
+  elements.voiceMaleButton.addEventListener("click", () => setActiveVoiceGender("male"));
+  elements.voiceApplyButton.addEventListener("click", saveActiveVoiceChoice);
+  elements.voiceCopyButton.addEventListener("click", copyVoiceDiagnostics);
+  elements.voiceTestButton.addEventListener("click", () => {
+    if (elements.voiceSelect.value) {
+      pendingFrenchVoiceId = elements.voiceSelect.value;
+      preferredFrenchVoiceId = elements.voiceSelect.value;
+    }
+    speakFrench(frenchVoiceSample);
+  });
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.view));
   });

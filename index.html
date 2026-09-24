@@ -11,10 +11,10 @@
       name="description"
       content="胖猫法语学习：可离线使用的法中双向词典与法语 Reader。"
     />
-    <link rel="manifest" href="./manifest.webmanifest?v=0.3.2" />
-    <link rel="apple-touch-icon" href="./icons/icon-192.png?v=0.3.2" />
-    <link rel="icon" href="./icons/icon-192.png?v=0.3.2" />
-    <link rel="stylesheet" href="./styles.css?v=0.3.2" />
+    <link rel="manifest" href="./manifest.webmanifest?v=0.3.3" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png?v=0.3.3" />
+    <link rel="icon" href="./icons/icon-192.png?v=0.3.3" />
+    <link rel="stylesheet" href="./styles.css?v=0.3.3" />
     <title>胖猫 · 学法语</title>
   </head>
   <body>
@@ -235,7 +235,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <header class="sheet-header">
         <div>
-          <span class="eyebrow">胖猫 Web <span id="webVersion">0.3.2</span></span>
+          <span class="eyebrow">胖猫 Web <span id="webVersion">0.3.3</span></span>
           <h2 id="aboutTitle">关于与数据来源</h2>
         </div>
         <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
@@ -256,18 +256,29 @@
               <span class="eyebrow">TTS</span>
               <h3 id="voiceSettingsTitle">法语声音</h3>
             </div>
-            <button id="voiceTestButton" class="secondary-button" type="button">试听</button>
+          </div>
+          <p class="voice-gender-note">网页不会告诉胖猫声音的性别。请分别试听，并为女声和男声各保存一个法语声音。</p>
+          <span id="voiceGenderLabel" class="voice-field-label">声音类型</span>
+          <div id="voiceGenderChoice" class="voice-gender-choice" role="group" aria-labelledby="voiceGenderLabel">
+            <button id="voiceFemaleButton" class="voice-gender-button" type="button" data-voice-gender="female" aria-pressed="true">女声</button>
+            <button id="voiceMaleButton" class="voice-gender-button" type="button" data-voice-gender="male" aria-pressed="false">男声</button>
           </div>
           <label for="voiceSelect">声音模型</label>
           <select id="voiceSelect" disabled>
             <option value="">正在查找法语声音</option>
           </select>
+          <p id="voiceSample" class="voice-sample" lang="fr">试听句子：Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.</p>
+          <div class="voice-actions">
+            <button id="voiceTestButton" class="secondary-button" type="button">试听当前声音</button>
+            <button id="voiceApplyButton" class="primary-button" type="button">保存为女声</button>
+            <button id="voiceCopyButton" class="secondary-button" type="button">复制声音信息</button>
+          </div>
           <p id="voiceStatus" class="voice-status" role="status">正在读取设备上的法语声音…</p>
           <details id="voiceHelp" class="voice-help">
             <summary>没有声音？安装法语声音</summary>
             <div>
               <p><strong>Android：</strong>设置 → 无障碍（或“更多设置”）→ 文字转语音输出 → 安装语音数据 → 法语（法国）。安装后从 Chrome 或主屏幕重新打开胖猫。</p>
-              <p><strong>iPhone：</strong>设置 → 辅助功能 → 朗读内容 → 声音 → 法语 → 下载一个法国法语声音。安装后重新打开胖猫。</p>
+              <p><strong>iPhone：</strong>设置 → 辅助功能 → 朗读内容 → 声音 → 法语 → 下载法国法语声音。如果目前只有一种音色，请再下载其他声音，然后重新打开胖猫并分别试听女声和男声。</p>
               <p>不同手机的菜单名称可能略有差异。微信、聊天软件等内置浏览器有时不会返回系统声音；此时请改用 Safari、Chrome 或已安装到主屏幕的胖猫。</p>
             </div>
           </details>
@@ -278,6 +289,6 @@
     </article>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script type="module" src="./src/app.js?v=0.3.2"></script>
+    <script type="module" src="./src/app.js?v=0.3.3"></script>
   </body>
 </html>

@@ -48,6 +48,32 @@ export function availableVoices(synth) {
   }
 }
 
+export function formatFrenchVoiceDiagnostics(
+  voices,
+  { releaseVersion = "", activeGender = "female", profileVoices = {} } = {},
+) {
+  const frenchVoices = listFrenchVoices(voices);
+  const lines = [
+    `Pangmao Web ${String(releaseVersion || "unknown")}`,
+    `activeProfile=${activeGender === "male" ? "male" : "female"}`,
+    `femaleVoice=${String(profileVoices?.female || "none")}`,
+    `maleVoice=${String(profileVoices?.male || "none")}`,
+    `frenchVoiceCount=${frenchVoices.length}`,
+  ];
+  frenchVoices.forEach((voice, index) => {
+    lines.push(
+      [
+        `${index + 1}. ${String(voice.name || "unnamed")}`,
+        `lang=${String(voice.lang || "unknown")}`,
+        `uri=${voiceIdentifier(voice) || "unknown"}`,
+        `service=${voice.localService ? "local" : "remote"}`,
+        `default=${voice.default ? "yes" : "no"}`,
+      ].join(" | "),
+    );
+  });
+  return lines.join("\n");
+}
+
 export function waitForFrenchVoice({
   synth,
   preferredIdentifier = "",
