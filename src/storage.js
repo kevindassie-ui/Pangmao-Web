@@ -1,6 +1,7 @@
 const FAVORITES_KEY = "pangmao.web.favorites.v1";
 const INSTALL_HINT_KEY = "pangmao.web.install-hint-dismissed.v1";
 const READER_DRAFT_KEY = "pangmao.web.reader-draft.v1";
+const FRENCH_VOICE_KEY = "pangmao.web.french-voice.v1";
 
 function readJson(storage, key, fallback) {
   try {
@@ -54,6 +55,24 @@ export function loadReaderDraft(storage = window.localStorage) {
 export function saveReaderDraft(value, storage = window.localStorage) {
   try {
     storage.setItem(READER_DRAFT_KEY, String(value ?? ""));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function loadFrenchVoiceId(storage = window.localStorage) {
+  try {
+    const value = storage.getItem(FRENCH_VOICE_KEY);
+    return typeof value === "string" ? value : "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveFrenchVoiceId(value, storage = window.localStorage) {
+  try {
+    storage.setItem(FRENCH_VOICE_KEY, String(value ?? ""));
     return true;
   } catch {
     return false;

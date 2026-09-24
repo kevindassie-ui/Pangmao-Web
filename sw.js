@@ -1,17 +1,26 @@
-const CACHE_NAME = "pangmao-web-v0.3.0";
+const RELEASE_VERSION = "0.3.1";
+const CACHE_NAME = `pangmao-web-v${RELEASE_VERSION}`;
+
+function versioned(path) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}v=${encodeURIComponent(RELEASE_VERSION)}`;
+}
+
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./brand.json",
-  "./styles.css",
-  "./manifest.webmanifest",
-  "./src/app.js",
-  "./src/chinese-fallback.js",
-  "./src/reader.js",
-  "./src/search-engine.js",
-  "./src/storage.js",
-  "./data/french-pack.json",
-  "./data/chinese-fallback/manifest.json",
+  versioned("./brand.json"),
+  versioned("./styles.css"),
+  versioned("./manifest.webmanifest"),
+  versioned("./src/app.js"),
+  versioned("./src/chinese-fallback.js"),
+  versioned("./src/reader.js"),
+  versioned("./src/release.js"),
+  versioned("./src/search-engine.js"),
+  versioned("./src/storage.js"),
+  versioned("./src/tts.js"),
+  versioned("./data/french-pack.json"),
+  versioned("./data/chinese-fallback/manifest.json"),
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./images/deer-mascot.png",
@@ -56,7 +65,7 @@ async function cacheFirst(request) {
   return response;
 }
 
-async function networkFirst(request) {
+async function networkFirst(request, fallbackPath = "") {
   try {
     const response = await fetch(request);
     if (response.ok) {
@@ -64,8 +73,14 @@ async function networkFirst(request) {
       await cache.put(request, response.clone());
     }
     return response;
-  } catch {
-    return (await caches.match(request)) || (await caches.match(scopedUrl("./index.html")));
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (fallbackPath) {
+      const fallback = await caches.match(scopedUrl(fallbackPath));
+      if (fallback) return fallback;
+    }
+    throw error;
   }
 }
 
@@ -76,14 +91,16 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirst(request, "./index.html"));
     return;
   }
 
-  if (url.pathname.endsWith("/data/french-pack.json")) {
+  if (url.searchParams.get("v") === RELEASE_VERSION) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  event.respondWith(cacheFirst(request));
+  // An unversioned request can only come from an older application shell.
+  // Prefer the network so that old and new releases cannot be assembled together.
+  event.respondWith(networkFirst(request));
 });

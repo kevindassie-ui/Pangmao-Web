@@ -1,14 +1,23 @@
-import { createChineseFallbackLoader } from "./chinese-fallback.js";
-import { segmentFrenchText } from "./reader.js";
-import { containsHan, createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js";
+import { createChineseFallbackLoader } from "./chinese-fallback.js?v=0.3.1";
+import { segmentFrenchText } from "./reader.js?v=0.3.1";
+import { WEB_VERSION, versionedAsset } from "./release.js?v=0.3.1";
+import { containsHan, createDictionaryIndex, getEntry, searchDictionary } from "./search-engine.js?v=0.3.1";
 import {
   dismissInstallHint,
   isInstallHintDismissed,
+  loadFrenchVoiceId,
   loadFavorites,
   loadReaderDraft,
+  saveFrenchVoiceId,
   saveFavorites,
   saveReaderDraft,
-} from "./storage.js";
+} from "./storage.js?v=0.3.1";
+import {
+  listFrenchVoices,
+  selectFrenchVoice,
+  speakWithFrenchVoice,
+  voiceIdentifier,
+} from "./tts.js?v=0.3.1";
 
 const elements = Object.fromEntries(
   [
@@ -66,6 +75,10 @@ const elements = Object.fromEntries(
     "welcomeEyebrow",
     "welcomeMascot",
     "welcomeTitle",
+    "voiceSelect",
+    "voiceStatus",
+    "voiceTestButton",
+    "webVersion",
   ].map((id) => [id, document.getElementById(id)]),
 );
 
@@ -93,7 +106,10 @@ let toastTimer = null;
 let loadedEntryCount = 0;
 let offlineReady = false;
 let readerSentences = [];
-const lookupChineseFallback = createChineseFallbackLoader();
+let preferredFrenchVoiceId = loadFrenchVoiceId();
+let voiceRefreshTimers = [];
+let activeFrenchUtterance = null;
+const lookupChineseFallback = createChineseFallbackLoader({ cacheTag: WEB_VERSION });
 
 const defaultBrand = {
   id: "global",
@@ -145,7 +161,7 @@ function applyBranding(value) {
 
 async function loadBranding() {
   try {
-    const response = await fetch("./brand.json");
+    const response = await fetch(versionedAsset("./brand.json"));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     applyBranding(await response.json());
   } catch (error) {
@@ -172,6 +188,57 @@ function updateReadyStatus() {
   if (!loadedEntryCount) return;
   const count = new Intl.NumberFormat("zh-CN").format(loadedEntryCount);
   setStatus("", `${count} 个词条${offlineReady ? " · 可离线使用" : ""}`);
+}
+
+function speechSupported() {
+  return "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function";
+}
+
+function voiceLabel(voice) {
+  const locality = voice.localService ? "设备" : "在线";
+  return `${voice.name} · ${voice.lang} · ${locality}`;
+}
+
+function refreshFrenchVoiceControls() {
+  if (!speechSupported()) {
+    elements.voiceSelect.disabled = true;
+    elements.voiceTestButton.disabled = true;
+    elements.voiceSelect.replaceChildren(new Option("此浏览器不支持语音", ""));
+    elements.voiceStatus.textContent = "此浏览器没有提供网页语音合成功能。";
+    return [];
+  }
+
+  const voices = listFrenchVoices(window.speechSynthesis.getVoices());
+  elements.voiceSelect.replaceChildren();
+  if (!voices.length) {
+    elements.voiceSelect.append(new Option("未找到法语声音", ""));
+    elements.voiceSelect.disabled = true;
+    elements.voiceTestButton.disabled = true;
+    elements.voiceStatus.textContent =
+      "未找到系统法语声音。请在手机的语音或辅助功能设置中安装法语声音，然后重新打开胖猫。";
+    return [];
+  }
+
+  voices.forEach((voice) => {
+    elements.voiceSelect.append(new Option(voiceLabel(voice), voiceIdentifier(voice)));
+  });
+  const selected = selectFrenchVoice(voices, preferredFrenchVoiceId);
+  preferredFrenchVoiceId = voiceIdentifier(selected);
+  elements.voiceSelect.value = preferredFrenchVoiceId;
+  elements.voiceSelect.disabled = false;
+  elements.voiceTestButton.disabled = false;
+  elements.voiceStatus.textContent = `当前只使用法语声音：${voiceLabel(selected)}`;
+  return voices;
+}
+
+function initializeFrenchVoices() {
+  elements.webVersion.textContent = WEB_VERSION;
+  refreshFrenchVoiceControls();
+  if (!speechSupported()) return;
+  window.speechSynthesis.addEventListener?.("voiceschanged", refreshFrenchVoiceControls);
+  voiceRefreshTimers = [250, 1_000, 2_500].map((delay) =>
+    window.setTimeout(refreshFrenchVoiceControls, delay),
+  );
 }
 
 function grammarFacts(entry) {
@@ -318,20 +385,31 @@ function searchFor(query) {
 }
 
 function speakFrench(text) {
-  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
-    showToast("这台设备暂不支持语音播放");
+  const result = speakWithFrenchVoice({
+    synth: speechSupported() ? window.speechSynthesis : null,
+    Utterance: window.SpeechSynthesisUtterance,
+    text,
+    preferredIdentifier: preferredFrenchVoiceId,
+    onError: (event) => {
+      if (activeFrenchUtterance === event.currentTarget) activeFrenchUtterance = null;
+      if (event.error !== "canceled" && event.error !== "interrupted") {
+        showToast("法语发音播放失败；请在“关于”中测试其他声音");
+      }
+    },
+    onEnd: (event) => {
+      if (activeFrenchUtterance === event.currentTarget) activeFrenchUtterance = null;
+    },
+  });
+  if (!result.ok) {
+    refreshFrenchVoiceControls();
+    showToast(
+      result.reason === "no-french-voice"
+        ? "没有找到法语声音；请在“关于”中查看语音设置"
+        : "这台设备暂不支持语音播放",
+    );
     return;
   }
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "fr-FR";
-  utterance.rate = 0.82;
-  const frenchVoice = window.speechSynthesis
-    .getVoices()
-    .find((voice) => voice.lang.toLocaleLowerCase().startsWith("fr"));
-  if (frenchVoice) utterance.voice = frenchVoice;
-  utterance.onerror = () => showToast("发音播放失败，请稍后重试");
-  window.speechSynthesis.speak(utterance);
+  activeFrenchUtterance = result.utterance;
 }
 
 function findReaderEntry(candidates) {
@@ -665,14 +743,47 @@ function fillSourceDetails(pack) {
   elements.sourceFallback.textContent = "按需载入 · 直接释义与明确标记的推测分开";
 }
 
+async function clearPangmaoWebCaches() {
+  if (!("caches" in window)) return;
+  const names = await window.caches.keys();
+  await Promise.all(
+    names
+      .filter((name) => name.startsWith("pangmao-web-"))
+      .map((name) => window.caches.delete(name)),
+  );
+}
+
+async function fetchDictionaryPack() {
+  const packUrl = versionedAsset("./data/french-pack.json");
+  const readPack = async (url, cache) => {
+    const response = await fetch(url, { cache });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  };
+
+  let pack = await readPack(packUrl, "no-cache");
+  if (pack.releaseVersion === WEB_VERSION) return pack;
+
+  console.warn(
+    `Dictionary release mismatch: expected ${WEB_VERSION}, received ${pack.releaseVersion ?? "none"}`,
+  );
+  await clearPangmaoWebCaches();
+  const separator = packUrl.includes("?") ? "&" : "?";
+  pack = await readPack(`${packUrl}${separator}refresh=${Date.now()}`, "reload");
+  if (pack.releaseVersion !== WEB_VERSION) {
+    throw new Error(
+      `Dictionary release mismatch after refresh: expected ${WEB_VERSION}, received ${pack.releaseVersion ?? "none"}`,
+    );
+  }
+  return pack;
+}
+
 async function loadDictionary() {
   elements.loadingState.hidden = false;
   elements.errorState.hidden = true;
   setStatus("loading", "正在载入词典");
   try {
-    const response = await fetch("./data/french-pack.json");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const pack = await response.json();
+    const pack = await fetchDictionaryPack();
     dictionary = createDictionaryIndex(pack);
     loadedEntryCount = pack.entryCount;
     fillSourceDetails(pack);
@@ -686,9 +797,11 @@ async function loadDictionary() {
     loadedEntryCount = 0;
     elements.loadingState.hidden = true;
     elements.errorState.hidden = false;
-    elements.errorMessage.textContent = navigator.onLine
-      ? "词典数据无法读取，请稍后重试。"
-      : "当前没有网络，且离线词典尚未下载完成。";
+    elements.errorMessage.textContent = String(error?.message).includes("release mismatch")
+      ? "应用更新尚未完成。请点“重试”；若仍失败，请完全关闭后重新打开胖猫。"
+      : navigator.onLine
+        ? "词典数据无法读取，请稍后重试。"
+        : "当前没有网络，且离线词典尚未下载完成。";
     setStatus("error", "词典载入失败");
   }
 }
@@ -730,6 +843,14 @@ function bindEvents() {
   elements.readerClearButton.addEventListener("click", clearReader);
   elements.readerImportButton.addEventListener("click", () => elements.readerFile.click());
   elements.readerFile.addEventListener("change", importReaderFile);
+  elements.voiceSelect.addEventListener("change", () => {
+    preferredFrenchVoiceId = elements.voiceSelect.value;
+    saveFrenchVoiceId(preferredFrenchVoiceId);
+    refreshFrenchVoiceControls();
+  });
+  elements.voiceTestButton.addEventListener("click", () =>
+    speakFrench("Bonjour, bienvenue dans Pangmao."),
+  );
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.view));
   });
@@ -755,8 +876,33 @@ function bindEvents() {
 
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  let reloading = false;
+  if (hadController) {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      const reloadKey = `pangmao.web.controller-reload.${WEB_VERSION}`;
+      let alreadyReloaded = false;
+      try {
+        alreadyReloaded = window.sessionStorage.getItem(reloadKey) === "true";
+      } catch {
+        // A restricted storage context still receives one in-memory guarded reload.
+      }
+      if (reloading || alreadyReloaded) return;
+      reloading = true;
+      try {
+        window.sessionStorage.setItem(reloadKey, "true");
+      } catch {
+        // Reloading is still safe because reloading prevents a second event on this page.
+      }
+      window.location.reload();
+    });
+  }
   try {
-    await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+    const registration = await navigator.serviceWorker.register(versionedAsset("./sw.js"), {
+      scope: "./",
+      updateViaCache: "none",
+    });
+    await registration.update();
     await navigator.serviceWorker.ready;
     offlineReady = true;
     updateReadyStatus();
@@ -769,6 +915,7 @@ applyBranding(defaultBrand);
 elements.readerInput.value = loadReaderDraft();
 bindEvents();
 configureInstallHint();
+initializeFrenchVoices();
 loadBranding();
 loadDictionary();
 registerServiceWorker();

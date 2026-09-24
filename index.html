@@ -11,10 +11,10 @@
       name="description"
       content="胖猫法语学习：可离线使用的法中双向词典与法语 Reader。"
     />
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-    <link rel="icon" href="./icons/icon-192.png" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="manifest" href="./manifest.webmanifest?v=0.3.1" />
+    <link rel="apple-touch-icon" href="./icons/icon-192.png?v=0.3.1" />
+    <link rel="icon" href="./icons/icon-192.png?v=0.3.1" />
+    <link rel="stylesheet" href="./styles.css?v=0.3.1" />
     <title>胖猫 · 学法语</title>
   </head>
   <body>
@@ -233,7 +233,7 @@
       <div class="sheet-handle" aria-hidden="true"></div>
       <header class="sheet-header">
         <div>
-          <span class="eyebrow">胖猫 Web 0.3</span>
+          <span class="eyebrow">胖猫 Web <span id="webVersion">0.3.1</span></span>
           <h2 id="aboutTitle">关于与数据来源</h2>
         </div>
         <button id="closeAbout" class="icon-button" type="button" aria-label="关闭">×</button>
@@ -248,11 +248,26 @@
           <div><dt>中文解释</dt><dd id="sourceChineseCount">—</dd></div>
           <div><dt>中文补充查询</dt><dd id="sourceFallback">—</dd></div>
         </dl>
+        <section class="voice-settings" aria-labelledby="voiceSettingsTitle">
+          <div class="voice-settings-heading">
+            <div>
+              <span class="eyebrow">TTS</span>
+              <h3 id="voiceSettingsTitle">法语声音</h3>
+            </div>
+            <button id="voiceTestButton" class="secondary-button" type="button">试听</button>
+          </div>
+          <label for="voiceSelect">声音模型</label>
+          <select id="voiceSelect" disabled>
+            <option value="">正在查找法语声音</option>
+          </select>
+          <p id="voiceStatus" class="voice-status" role="status">正在读取设备上的法语声音…</p>
+          <p class="fine-print">胖猫只会使用设备明确标记为法语的声音，不会用中文声音朗读法语。可用声音由 Safari、浏览器和手机系统提供。</p>
+        </section>
         <p class="fine-print">基础词典来自 FreeDict、WikDict、Wiktionary 和 DBnary 贡献者；部分中文解释来自中文维基词典贡献者，并经 Kaikki / Wiktextract 提取；经复核的缺词补充来自 CFDICT。推测释义始终单独标记，不会冒充直接词典释义。</p>
       </div>
     </article>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script type="module" src="./src/app.js"></script>
+    <script type="module" src="./src/app.js?v=0.3.1"></script>
   </body>
 </html>

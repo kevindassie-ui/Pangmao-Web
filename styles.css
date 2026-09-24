@@ -1090,6 +1090,62 @@ textarea:focus-visible {
   text-align: right;
 }
 
+.voice-settings {
+  margin: 18px 0;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: var(--surface);
+}
+
+.voice-settings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voice-settings-heading .eyebrow {
+  margin-bottom: 2px;
+}
+
+.voice-settings h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.voice-settings label {
+  display: block;
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.voice-settings select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 34px 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+}
+
+.voice-settings select:disabled,
+.voice-settings button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.voice-status {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .fine-print {
   color: var(--muted);
   font-size: 0.8rem;

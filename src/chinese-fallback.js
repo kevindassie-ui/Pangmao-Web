@@ -13,12 +13,17 @@ export function fallbackShardName(value, shardCount) {
   return `${fallbackShardIndex(value, shardCount).toString(16).padStart(2, "0")}.json`;
 }
 
-export function createChineseFallbackLoader({ fetchImpl = globalThis.fetch, base = DEFAULT_BASE } = {}) {
+export function createChineseFallbackLoader({
+  fetchImpl = globalThis.fetch,
+  base = DEFAULT_BASE,
+  cacheTag = "",
+} = {}) {
   let manifestPromise = null;
   const shardPromises = new Map();
 
   async function fetchJson(path) {
-    const response = await fetchImpl(`${base}/${path}`);
+    const suffix = cacheTag ? `?v=${encodeURIComponent(cacheTag)}` : "";
+    const response = await fetchImpl(`${base}/${path}${suffix}`);
     if (!response.ok) throw new Error(`Fallback HTTP ${response.status}`);
     return response.json();
   }
