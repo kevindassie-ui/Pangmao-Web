@@ -3,10 +3,17 @@
 Prototype installable « 我学法语 » destiné à une première validation familiale
 sur iPhone et Android. Il propose un dictionnaire français–chinois
 bidirectionnel, des explications chinoises, la prononciation française et des
-favoris locaux. La version 0.3.1 ajoute un Reader français: collage ou import
-`.txt`, découpage local en phrases et mots, TTS par phrase et ouverture d'une
-fiche au toucher. Le TTS sélectionne uniquement une voix système française;
-son choix et son essai se trouvent dans « À propos ».
+favoris locaux. **La version publique actuelle est 0.3.3.** Le Reader permet le
+collage ou l'import `.txt`, le découpage local en phrases et mots, la lecture
+par phrase et l'ouverture d'une fiche au toucher.
+
+La 0.3.3 ajoute deux profils vocaux mémorisables (« 女声 » et « 男声 »), un essai
+sur une phrase française et un diagnostic copiable dans « À propos ». Ces
+profils permettent de choisir parmi les voix françaises exposées par le
+navigateur et le téléphone : leurs noms ne garantissent pas le genre de la voix
+sélectionnée. Aucun nouveau moteur vocal n'est embarqué. Le retour du
+3 octobre 2026 signale une prononciation toujours insatisfaisante ; sa cause
+reste à diagnostiquer sur l'appareil concerné.
 
 Utiliser le prototype: <https://kevindassie-ui.github.io/Pangmao-Web/>
 
@@ -22,7 +29,7 @@ rencontrés fortuitement dans le texte d'une définition. Le correctif revu
 chinois n'affichent plus de pinyin, puisque le français est la langue étudiée.
 Le code et le paquet lexical portent la même version afin qu'un ancien cache
 hors ligne ne puisse plus réintroduire les résultats `gigue` ou `punaise`.
-Chaque publication audite les 10 924 entrées et 15 176 équivalents, avec 23
+Chaque publication audite les 10 926 entrées et 15 187 équivalents, avec 26
 mots témoins revus.
 
 Cette publication familiale utilise volontairement une palette rouge et un
@@ -33,4 +40,5 @@ Ce dépôt public contient uniquement les fichiers statiques nécessaires au
 déploiement. Le développement principal et l'application Android restent dans
 un dépôt privé distinct.
 
-Version déployée depuis le commit Pangmao `84dd632`.
+La version 0.3.4 (journal facultatif des recherches sans résultat) est en
+préparation dans le dépôt principal et n'est pas publiée ici.
