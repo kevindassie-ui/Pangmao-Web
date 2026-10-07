@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-10-07-v1",
+  "language": "fr-FR",
+  "purpose": "comparison-only",
+  "engine": "Piper 1.4.1",
+  "model": "fr_FR-upmc-medium",
+  "modelRevision": "c10ece1aade47bb51c153c893d14e5bf8e5b7117",
+  "modelInputsSha256": {
+    "fr_FR-upmc-medium.onnx": "9abb3800c199148897a9ed64e100d224f3de83579f100044174ad19418f1786f",
+    "fr_FR-upmc-medium.onnx.json": "e8636ec15dfd5d72db37a02cb5320a20f2b8d339f2a0e4337da64c58a33a5868",
+    "MODEL_CARD": "cf1ac7309e0e04bb159b7e6ae80bc8f66bfce9bdfb3e62ae93a6f57e210ab98a"
+  },
+  "voices": [
+    {
+      "id": "female",
+      "label": "Femme · 女声",
+      "speaker": "jessica",
+      "speakerId": 0
+    },
+    {
+      "id": "male",
+      "label": "Homme · 男声",
+      "speaker": "pierre",
+      "speakerId": 1
+    }
+  ],
+  "samples": [
+    {
+      "id": "avocat",
+      "label": "Mot · 单词",
+      "text": "avocat",
+      "clips": {
+        "female": {
+          "file": "audio/female-avocat.mp3",
+          "bytes": 5268,
+          "sha256": "bbfb1fdd3998e2021c48b5a61b225bb0585c852b12814c1d429a2691408fbdbb",
+          "durationSeconds": 0.557,
+          "generationSeconds": 0.047
+        },
+        "male": {
+          "file": "audio/male-avocat.mp3",
+          "bytes": 5268,
+          "sha256": "f73155c20eae210bd4e6fb424f3758d4837bf0b33a5db5f9066708c91884160b",
+          "durationSeconds": 0.557,
+          "generationSeconds": 0.032
+        }
+      }
+    },
+    {
+      "id": "medecin",
+      "label": "Mot · 单词",
+      "text": "médecin",
+      "clips": {
+        "female": {
+          "file": "audio/female-medecin.mp3",
+          "bytes": 5686,
+          "sha256": "dd61adda85a9715865b621fdf646ef4736497950041026ea8a84f1c81c8561d7",
+          "durationSeconds": 0.615,
+          "generationSeconds": 0.035
+        },
+        "male": {
+          "file": "audio/male-medecin.mp3",
+          "bytes": 5686,
+          "sha256": "780b8d465cce0493adb579ee88c3fc6e49caac783c8b05c39a415b0f3de5fad6",
+          "durationSeconds": 0.627,
+          "generationSeconds": 0.038
+        }
+      }
+    },
+    {
+      "id": "liaisons",
+      "label": "Liaisons · 连读",
+      "text": "Les enfants ont un rendez-vous avec le médecin.",
+      "clips": {
+        "female": {
+          "file": "audio/female-liaisons.mp3",
+          "bytes": 21359,
+          "sha256": "3bb20b25f3a704c0f7f5ca93e7fe05a6c969dba0d87468786f9af3d0e8f77b74",
+          "durationSeconds": 2.577,
+          "generationSeconds": 0.122
+        },
+        "male": {
+          "file": "audio/male-liaisons.mp3",
+          "bytes": 25539,
+          "sha256": "31df6c29a7ad2a37310f61047a15aa45d6a081bb53303d173915b61e395fa1e5",
+          "durationSeconds": 3.1,
+          "generationSeconds": 0.136
+        }
+      }
+    },
+    {
+      "id": "nombres",
+      "label": "Nombres · 数字",
+      "text": "Le rendez-vous est fixé au 21 octobre à 18 h 30. Le prix est de 12 euros et 50 centimes.",
+      "clips": {
+        "female": {
+          "file": "audio/female-nombres.mp3",
+          "bytes": 52288,
+          "sha256": "8b78312c53110d73a3f64c70228c2ebd8984597f254089dbd8d3965ed30c7e92",
+          "durationSeconds": 6.432,
+          "generationSeconds": 0.293
+        },
+        "male": {
+          "file": "audio/male-nombres.mp3",
+          "bytes": 51661,
+          "sha256": "ea5c2a5495b2cc1d1cb77135ca3152f1278a494553cd072326503f95b02f2e9a",
+          "durationSeconds": 6.374,
+          "generationSeconds": 0.34
+        }
+      }
+    },
+    {
+      "id": "quotidien",
+      "label": "Phrase · 句子",
+      "text": "Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.",
+      "clips": {
+        "female": {
+          "file": "audio/female-quotidien.mp3",
+          "bytes": 34107,
+          "sha256": "38c5a36febc19df3112792be1937a5770c75109684d775b71c56aa5746d98085",
+          "durationSeconds": 4.18,
+          "generationSeconds": 0.234
+        },
+        "male": {
+          "file": "audio/male-quotidien.mp3",
+          "bytes": 32644,
+          "sha256": "3f7315598f7bc4d851e8f7d25927b1a93688629630683a8e76983592b544933a",
+          "durationSeconds": 3.994,
+          "generationSeconds": 0.208
+        }
+      }
+    },
+    {
+      "id": "lecture",
+      "label": "Lecture · 阅读",
+      "text": "Quand tu auras terminé tes courses, retrouve-moi devant la boulangerie. S'il pleut, nous prendrons le bus ; sinon, nous rentrerons à pied en passant par le jardin.",
+      "clips": {
+        "female": {
+          "file": "audio/female-lecture.mp3",
+          "bytes": 74231,
+          "sha256": "2b17d1fd500676b6282c4da5720c2554c81dd5941211485d22cf517dd0ff59d8",
+          "durationSeconds": 9.172,
+          "generationSeconds": 0.443
+        },
+        "male": {
+          "file": "audio/male-lecture.mp3",
+          "bytes": 71515,
+          "sha256": "c47450b512be4d29368fec81abc8a1d7cfcac16d0a82aaec3414f2be831a4912",
+          "durationSeconds": 8.847,
+          "generationSeconds": 0.445
+        }
+      }
+    }
+  ],
+  "license": "CC-BY-SA-4.0",
+  "notice": "NOTICE.md",
+  "totalAudioBytes": 385252
+}

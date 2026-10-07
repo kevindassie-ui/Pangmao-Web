@@ -1,0 +1,8 @@
+[
+  {"id":"avocat","label":"Mot · 单词","text":"avocat"},
+  {"id":"medecin","label":"Mot · 单词","text":"médecin"},
+  {"id":"liaisons","label":"Liaisons · 连读","text":"Les enfants ont un rendez-vous avec le médecin."},
+  {"id":"nombres","label":"Nombres · 数字","text":"Le rendez-vous est fixé au 21 octobre à 18 h 30. Le prix est de 12 euros et 50 centimes."},
+  {"id":"quotidien","label":"Phrase · 句子","text":"Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse."},
+  {"id":"lecture","label":"Lecture · 阅读","text":"Quand tu auras terminé tes courses, retrouve-moi devant la boulangerie. S'il pleut, nous prendrons le bus ; sinon, nous rentrerons à pied en passant par le jardin."}
+]
