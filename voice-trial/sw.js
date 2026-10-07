@@ -1,12 +1,13 @@
 import { withByteRange } from "./ranges.js";
-import { TRIAL_VERSION } from "./player.js";
+// Keep this release inline so an old HTTP-cached player import cannot retain v1 audio.
+const TRIAL_VERSION = "2026-10-08-v2";
 
 const CACHE = `pangmao-voice-trial-${TRIAL_VERSION}`;
 const ROOT = self.registration.scope;
 const SHELL = ["./", "./index.html", "./styles.css", "./controller.js", "./player.js", "./ranges.js", "./manifest.json", "./NOTICE.md"];
 const shellUrls = new Set(SHELL.map((path) => new URL(path, ROOT).href));
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll([...shellUrls])));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll([...shellUrls].map((url) => new Request(url, { cache: "reload" })))));
   self.skipWaiting();
 });
 self.addEventListener("activate", (event) => {

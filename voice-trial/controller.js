@@ -84,7 +84,7 @@ document.getElementById("copyFeedback").addEventListener("click", async () => {
 
 const offline = document.getElementById("offlineStatus");
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js", { type: "module", scope: "./" }).then((registration) => {
+  navigator.serviceWorker.register("./sw.js", { type: "module", scope: "./", updateViaCache: "none" }).then((registration) => {
     offline.textContent = "Cache hors ligne en préparation. Les extraits restent accessibles en ligne.";
     const worker = registration.installing || registration.waiting || registration.active;
     const update = () => {

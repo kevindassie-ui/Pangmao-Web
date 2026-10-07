@@ -1,4 +1,4 @@
-export const TRIAL_VERSION = "2026-10-07-v1";
+export const TRIAL_VERSION = "2026-10-08-v2";
 export const TRIAL_RATES = [0.85, 1, 1.15];
 
 export function validateManifest(manifest) {
