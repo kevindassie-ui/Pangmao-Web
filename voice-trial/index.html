@@ -11,11 +11,14 @@
   <main>
     <a class="back" href="../">← 胖猫 · Pangmao</a>
     <header>
-      <p class="eyebrow">声音试听 2 · ESSAI DES VOIX 2</p>
-      <h1>听听这两种声音<br /><span lang="fr">Comparons les deux voix</span></h1>
-      <p>点击女声或男声，无需设置手机。请比较自然度和发音。<br /><span lang="fr">Écoute les mêmes textes avec chaque voix. Compare le naturel et la prononciation.</span></p>
+      <p class="eyebrow">声音试听 3 · ESSAI DES VOIX 3</p>
+      <h1>比较新旧声音<br /><span lang="fr">Comparons les nouvelles voix</span></h1>
+      <p>无需设置手机。试听新声音，或切换到 Jessica / Pierre 进行比较。<br /><span lang="fr">Écoute les nouvelles voix, puis compare avec Jessica / Pierre. Vérifie « avocat », « fixé » et « baguette et prendre ».</span></p>
       <p class="note">测试样本，不代表全词典或自由文本已支持。<br /><span lang="fr">Échantillons d’essai : ces voix ne lisent pas encore tout le dictionnaire ni tes textes.</span></p>
     </header>
+    <label class="speed">声音 · Voix
+      <select id="pair"><option value="new" selected>新声音 · SIWIS / MLS 1840</option><option value="previous">原声音 · Jessica / Pierre</option></select>
+    </label>
     <label class="speed">语速 · Vitesse
       <select id="speed"><option value="0.85">0,85× · 慢 / Lent</option><option value="1" selected>1× · 正常 / Normal</option><option value="1.15">1,15× · 快 / Rapide</option></select>
     </label>
@@ -23,8 +26,8 @@
     <div id="samples"></div>
     <section class="feedback" aria-labelledby="feedbackTitle">
       <h2 id="feedbackTitle">你的意见 · Ton avis</h2>
-      <label>女声 · Femme<select id="femaleRating"><option value="non testée">未评价 · Non évaluée</option><option value="naturelle">自然 · Naturelle</option><option value="robotique">机械 · Robotique</option><option value="prononciation incorrecte">发音不正确 · Prononciation incorrecte</option></select></label>
-      <label>男声 · Homme<select id="maleRating"><option value="non testée">未评价 · Non évaluée</option><option value="naturelle">自然 · Naturelle</option><option value="robotique">机械 · Robotique</option><option value="prononciation incorrecte">发音不正确 · Prononciation incorrecte</option></select></label>
+      <label><span id="femaleLabel">SIWIS</span><select id="femaleRating"><option value="non testée">未评价 · Non évaluée</option><option value="naturelle">自然 · Naturelle</option><option value="robotique">机械 · Robotique</option><option value="prononciation incorrecte">发音不正确 · Prononciation incorrecte</option></select></label>
+      <label><span id="maleLabel">MLS 1840</span><select id="maleRating"><option value="non testée">未评价 · Non évaluée</option><option value="naturelle">自然 · Naturelle</option><option value="robotique">机械 · Robotique</option><option value="prononciation incorrecte">发音不正确 · Prononciation incorrecte</option></select></label>
       <label>备注 · Remarque<textarea id="comment" rows="2" maxlength="1000"></textarea></label>
       <button id="copyFeedback" type="button">复制意见 · Copier mon avis</button>
       <p class="note">不会自动发送意见或个人文本。复制后可粘贴给 Kévin。<br /><span lang="fr">Aucun envoi automatique. Tu peux copier ton avis et le partager avec Kévin.</span></p>
@@ -32,10 +35,10 @@
     </section>
     <details class="sources">
       <summary>来源与离线 · Sources et hors ligne</summary>
-      <p>Audios de synthèse préparés avec Piper, voix UPMC Jessica/Pierre (français de France). Leur qualité reste à évaluer. Aucun modèle ni service de synthèse n’est chargé sur le téléphone ; seuls les fichiers écoutés sont téléchargés.</p>
+      <p>Audios de synthèse préparés avec Piper, voix UPMC Jessica/Pierre et candidats SIWIS / MLS 1840 (modèles français). Leur qualité reste à évaluer. Aucun modèle ni service de synthèse n’est chargé sur le téléphone ; seuls les fichiers écoutés sont téléchargés.</p>
       <p id="size"></p><p id="offlineStatus" role="status"></p>
       <p>Quand le cache est disponible, les extraits déjà écoutés peuvent être rejoués hors ligne. Le téléphone peut effacer ce cache pour libérer de l’espace.</p>
-      <a href="./NOTICE.md">Attributions · CC BY-SA 4.0</a>
+      <a href="./NOTICE.md">Attributions et licences</a>
     </details>
   </main>
   <footer class="player">

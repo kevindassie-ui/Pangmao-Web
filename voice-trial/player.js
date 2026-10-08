@@ -1,17 +1,20 @@
-export const TRIAL_VERSION = "2026-10-08-v2";
+export const TRIAL_VERSION = "2026-10-08-v3";
+export const TRIAL_VOICE_IDS = ["female", "male", "siwis", "mls"];
 export const TRIAL_RATES = [0.85, 1, 1.15];
 
 export function validateManifest(manifest) {
-  if (manifest?.schemaVersion !== 1 || manifest.version !== TRIAL_VERSION ||
+  if (manifest?.schemaVersion !== 2 || manifest.version !== TRIAL_VERSION ||
       manifest.language !== "fr-FR" || manifest.purpose !== "comparison-only" ||
       !Array.isArray(manifest.samples) || manifest.samples.length !== 6 ||
       new Set(manifest.samples.map((s) => s.id)).size !== 6) throw new Error("Invalid trial manifest");
+  if (!Array.isArray(manifest.voices) || manifest.voices.length !== 4 ||
+      manifest.voices.some((v, i) => v.id !== TRIAL_VOICE_IDS[i] || typeof v.label !== "string")) throw new Error("Invalid trial voices");
   let total = 0;
   const paths = new Set();
   for (const sample of manifest.samples) {
     if (!/^[a-z]+$/.test(sample.id) || typeof sample.text !== "string" || !sample.text.trim() ||
         typeof sample.label !== "string") throw new Error("Invalid trial text");
-    for (const gender of ["female", "male"]) {
+    for (const gender of TRIAL_VOICE_IDS) {
       const clip = sample.clips?.[gender];
       if (clip?.file !== `audio/${gender}-${sample.id}.mp3` || paths.has(clip.file) ||
           !/^[a-f0-9]{64}$/.test(clip.sha256) || !Number.isInteger(clip.bytes) ||
@@ -53,7 +56,7 @@ export function createTrialPlayer(audio, onState = () => {}) {
   }
   function play(sample, gender) {
     const clip = sample?.clips?.[gender];
-    if (!clip || clip.file !== `audio/${gender}-${sample.id}.mp3` || !/^[a-f0-9]{64}$/.test(clip.sha256)) {
+    if (!TRIAL_VOICE_IDS.includes(gender) || !clip || clip.file !== `audio/${gender}-${sample.id}.mp3` || !/^[a-f0-9]{64}$/.test(clip.sha256)) {
       throw new Error("Unsafe audio path");
     }
     stop();
