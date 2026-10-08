@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-10-08-d1",
+  "purpose": "input-codec-diagnostic",
+  "language": "fr-FR",
+  "referenceVersion": "2026-10-08-v3",
+  "engine": "Piper 1.4.1",
+  "runtime": "1.30.0",
+  "modelRevision": "c10ece1aade47bb51c153c893d14e5bf8e5b7117",
+  "modelInputsSha256": {
+    "fr_FR-upmc-medium.onnx": "9abb3800c199148897a9ed64e100d224f3de83579f100044174ad19418f1786f",
+    "fr_FR-upmc-medium.onnx.json": "e8636ec15dfd5d72db37a02cb5320a20f2b8d339f2a0e4337da64c58a33a5868",
+    "MODEL_CARD": "cf1ac7309e0e04bb159b7e6ae80bc8f66bfce9bdfb3e62ae93a6f57e210ab98a"
+  },
+  "voices": [
+    {
+      "id": "female",
+      "label": "Jessica · 女声",
+      "speaker": "jessica",
+      "speakerId": 0,
+      "model": "upmc",
+      "profile": "female"
+    },
+    {
+      "id": "male",
+      "label": "Pierre · 男声",
+      "speaker": "pierre",
+      "speakerId": 1,
+      "model": "upmc",
+      "profile": "male"
+    }
+  ],
+  "synthesisConfig": {
+    "lengthScale": 1.0,
+    "seed": 0,
+    "threads": 1,
+    "noiseScale": 0.667,
+    "noiseWidthScale": 0.8
+  },
+  "g2pAudit": {
+    "legacyRelease": "2023.11.14-4",
+    "archiveSha256": "3fb3d58b4ac42bd69d38948acdbeab335eee7e599984169d28fb0082496649ad",
+    "note": "Historical Piper chain; exact training phonemizer provenance is not established.",
+    "samples": [
+      {
+        "text": "médecin",
+        "current": [
+          "medəsˈɛ̃"
+        ],
+        "legacyFlat": "medəsˈɛ̃",
+        "phonemeSequenceEqual": true
+      },
+      {
+        "text": "avocat",
+        "current": [
+          "avokˈa"
+        ],
+        "legacyFlat": "avokˈa",
+        "phonemeSequenceEqual": true
+      },
+      {
+        "text": "fixé",
+        "current": [
+          "fiksˈe"
+        ],
+        "legacyFlat": "fiksˈe",
+        "phonemeSequenceEqual": true
+      },
+      {
+        "text": "une baguette et prendre le train",
+        "current": [
+          "yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃"
+        ],
+        "legacyFlat": "yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃",
+        "phonemeSequenceEqual": true
+      },
+      {
+        "text": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes.",
+        "current": [
+          "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.",
+          "lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim."
+        ],
+        "legacyFlat": "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim.",
+        "phonemeSequenceEqual": true
+      },
+      {
+        "text": "Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.",
+        "current": [
+          "bɔ̃ʒˈuʁ, ʒə- vudʁˈɛz aʃtˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz."
+        ],
+        "legacyFlat": "bɔ̃ʒˈuʁ, ʒə- vudʁˈɛz aʃtˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz.",
+        "phonemeSequenceEqual": true
+      }
+    ]
+  },
+  "samples": [
+    {
+      "id": "medecin",
+      "text": "médecin",
+      "spokenText": "médecin",
+      "synthesisText": "médecin",
+      "pronunciationOverrides": [],
+      "explicitPhonemes": "medsˈɛ̃",
+      "referenceClips": {
+        "female": "dd61adda85a9715865b621fdf646ef4736497950041026ea8a84f1c81c8561d7",
+        "male": "780b8d465cce0493adb579ee88c3fc6e49caac783c8b05c39a415b0f3de5fad6"
+      },
+      "ipaSource": {
+        "entryId": "fr:FreeDict-fra-zho:7217",
+        "pronunciations": [
+          "med.sɛ̃",
+          "mɛd.sɛ̃"
+        ],
+        "license": "CC BY-SA 3.0",
+        "revision": "2025.11.23"
+      },
+      "clips": {
+        "female": {
+          "wav": {
+            "file": "audio/female-medecin-current.wav",
+            "sha256": "80531c7bd2f397eb68334d7a7603713b9eda434cf7e99a7736e876375d94bd7f",
+            "bytes": 24108,
+            "pcmFrames": 12032,
+            "decodedFrames": 12032,
+            "sampleRate": 22050,
+            "durationSeconds": 0.546,
+            "sourcePcmSha256": "5fe4e0c47b20a9eed5aedeff43d8cdf37e61d3dde44a74a938106cacdb16e185",
+            "phonemes": [
+              "medəsˈɛ̃"
+            ],
+            "synthesisText": "médecin"
+          },
+          "mp3": {
+            "file": "audio/female-medecin-current.mp3",
+            "sha256": "ce95c6316d1faf0c16c3065058aca32c1f19188ce4cd77a3914e0f3022090fe2",
+            "bytes": 5059,
+            "pcmFrames": 12032,
+            "decodedFrames": 12032,
+            "sampleRate": 22050,
+            "durationSeconds": 0.546,
+            "sourcePcmSha256": "5fe4e0c47b20a9eed5aedeff43d8cdf37e61d3dde44a74a938106cacdb16e185",
+            "phonemes": [
+              "medəsˈɛ̃"
+            ],
+            "synthesisText": "médecin"
+          },
+          "explicit": {
+            "file": "audio/female-medecin-explicit.wav",
+            "sha256": "3b7a5194015e39d9d9721f3af2dac409292a79d312dc8fdb01d5957d35204b83",
+            "bytes": 22060,
+            "pcmFrames": 11008,
+            "decodedFrames": 11008,
+            "sampleRate": 22050,
+            "durationSeconds": 0.499,
+            "sourcePcmSha256": "53cc1215d74fd3ef128acf96c6b085019917d6fb1ffb7f74634200d16fea233a",
+            "phonemes": [
+              "medsˈɛ̃"
+            ],
+            "synthesisText": "[[medsˈɛ̃]]"
+          }
+        },
+        "male": {
+          "wav": {
+            "file": "audio/male-medecin-current.wav",
+            "sha256": "cd883359b55e0eede9375d431980d4cd3127adbd18d5b5b5f81db36446c5238c",
+            "bytes": 30764,
+            "pcmFrames": 15360,
+            "decodedFrames": 15360,
+            "sampleRate": 22050,
+            "durationSeconds": 0.697,
+            "sourcePcmSha256": "e6ac6b02275afd64266d2d5036091e899028c6923086aa62c8233b4f8357c760",
+            "phonemes": [
+              "medəsˈɛ̃"
+            ],
+            "synthesisText": "médecin"
+          },
+          "mp3": {
+            "file": "audio/male-medecin-current.mp3",
+            "sha256": "ac995a9d44e72d9c28feaa1ee0dfd448cffdb5e608598cc847696836dee7e868",
+            "bytes": 6313,
+            "pcmFrames": 15360,
+            "decodedFrames": 15360,
+            "sampleRate": 22050,
+            "durationSeconds": 0.697,
+            "sourcePcmSha256": "e6ac6b02275afd64266d2d5036091e899028c6923086aa62c8233b4f8357c760",
+            "phonemes": [
+              "medəsˈɛ̃"
+            ],
+            "synthesisText": "médecin"
+          },
+          "explicit": {
+            "file": "audio/male-medecin-explicit.wav",
+            "sha256": "8aee69539ec16b52fd049d43aca137ced3ef381f8c1e9e9191f0f96183d63284",
+            "bytes": 29740,
+            "pcmFrames": 14848,
+            "decodedFrames": 14848,
+            "sampleRate": 22050,
+            "durationSeconds": 0.673,
+            "sourcePcmSha256": "17d045afe134e433d74dde8cf3ab5c3955638a163456e8f982b0a85c3d9e0b97",
+            "phonemes": [
+              "medsˈɛ̃"
+            ],
+            "synthesisText": "[[medsˈɛ̃]]"
+          }
+        }
+      }
+    },
+    {
+      "id": "avocat",
+      "text": "avocat",
+      "spokenText": "avocat",
+      "synthesisText": "avocat",
+      "pronunciationOverrides": [],
+      "explicitPhonemes": "avɔkˈa",
+      "referenceClips": {
+        "female": "bbfb1fdd3998e2021c48b5a61b225bb0585c852b12814c1d429a2691408fbdbb",
+        "male": "f73155c20eae210bd4e6fb424f3758d4837bf0b33a5db5f9066708c91884160b"
+      },
+      "ipaSource": {
+        "entryId": "fr:FreeDict-fra-zho:2777",
+        "pronunciations": [
+          "a.vɔ.ka"
+        ],
+        "license": "CC BY-SA 3.0",
+        "revision": "2025.11.23"
+      },
+      "clips": {
+        "female": {
+          "wav": {
+            "file": "audio/female-avocat-current.wav",
+            "sha256": "3b063dc0a8f5359019dce69de967e218eec535ad9e9333c2e4e4a4f1a26f12a7",
+            "bytes": 24620,
+            "pcmFrames": 12288,
+            "decodedFrames": 12288,
+            "sampleRate": 22050,
+            "durationSeconds": 0.557,
+            "sourcePcmSha256": "28cdefd4e9d385bfd8b881a4373b3439178a647965b380d3fa97bfe0dfac5022",
+            "phonemes": [
+              "avokˈa"
+            ],
+            "synthesisText": "avocat"
+          },
+          "mp3": {
+            "file": "audio/female-avocat-current.mp3",
+            "sha256": "47fc5b7c459f5e7274d149bce9f8d19b0c6e69353213fa9e42e52a4b1fa94e52",
+            "bytes": 5268,
+            "pcmFrames": 12288,
+            "decodedFrames": 12288,
+            "sampleRate": 22050,
+            "durationSeconds": 0.557,
+            "sourcePcmSha256": "28cdefd4e9d385bfd8b881a4373b3439178a647965b380d3fa97bfe0dfac5022",
+            "phonemes": [
+              "avokˈa"
+            ],
+            "synthesisText": "avocat"
+          },
+          "explicit": {
+            "file": "audio/female-avocat-explicit.wav",
+            "sha256": "f947662993318b949792093236f38bb7b5ff3e28332b703d02baccd8cb78ac03",
+            "bytes": 26156,
+            "pcmFrames": 13056,
+            "decodedFrames": 13056,
+            "sampleRate": 22050,
+            "durationSeconds": 0.592,
+            "sourcePcmSha256": "9e54f2b6dd257d156c8115901040c5d70adfeea25a6a75eccbcdcd4205d3a26b",
+            "phonemes": [
+              "avɔkˈa"
+            ],
+            "synthesisText": "[[avɔkˈa]]"
+          }
+        },
+        "male": {
+          "wav": {
+            "file": "audio/male-avocat-current.wav",
+            "sha256": "908543b1999bd94714a2747510f2129ee6fbd5bd8bf951629d04710836f81464",
+            "bytes": 26668,
+            "pcmFrames": 13312,
+            "decodedFrames": 13312,
+            "sampleRate": 22050,
+            "durationSeconds": 0.604,
+            "sourcePcmSha256": "3b42e6c6ab9f3e1e2ddf4c6375fdd621cb4dfdafcd01051c1de39f5cea724ee1",
+            "phonemes": [
+              "avokˈa"
+            ],
+            "synthesisText": "avocat"
+          },
+          "mp3": {
+            "file": "audio/male-avocat-current.mp3",
+            "sha256": "c02d04c26db42487f1eea222ab92ab434986be976ab7206cf16c97d1bf8164f7",
+            "bytes": 5686,
+            "pcmFrames": 13312,
+            "decodedFrames": 13312,
+            "sampleRate": 22050,
+            "durationSeconds": 0.604,
+            "sourcePcmSha256": "3b42e6c6ab9f3e1e2ddf4c6375fdd621cb4dfdafcd01051c1de39f5cea724ee1",
+            "phonemes": [
+              "avokˈa"
+            ],
+            "synthesisText": "avocat"
+          },
+          "explicit": {
+            "file": "audio/male-avocat-explicit.wav",
+            "sha256": "733dcc846573d9cd6b3025c691bf0bffbca132cdaea3d7e1b3a654feded31952",
+            "bytes": 28204,
+            "pcmFrames": 14080,
+            "decodedFrames": 14080,
+            "sampleRate": 22050,
+            "durationSeconds": 0.639,
+            "sourcePcmSha256": "06e2adc9357d2a77e93b22dd81f799f30ed0457b8291fa248a11be57bbcf4ec2",
+            "phonemes": [
+              "avɔkˈa"
+            ],
+            "synthesisText": "[[avɔkˈa]]"
+          }
+        }
+      }
+    },
+    {
+      "id": "nombres",
+      "text": "Le rendez-vous est fixé au 21 octobre à 18 h 30. Le prix est de 12 euros et 50 centimes.",
+      "spokenText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes.",
+      "synthesisText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes.",
+      "pronunciationOverrides": [],
+      "explicitPhonemes": null,
+      "referenceClips": {
+        "female": "3a5ffaed3b758d4da4025346075e3588d7a55cf4be3fe16f42433130171350d2",
+        "male": "a70aa7c5c2f18e67fb5aaf55df970b869955b636c55607e13c9e33a9c12c347e"
+      },
+      "clips": {
+        "female": {
+          "wav": {
+            "file": "audio/female-nombres-current.wav",
+            "sha256": "a055b263095988b9ec77ed3fb88fa12f5a055887afc58ae3191240ab0b89ff84",
+            "bytes": 291372,
+            "pcmFrames": 145664,
+            "decodedFrames": 145664,
+            "sampleRate": 22050,
+            "durationSeconds": 6.606,
+            "sourcePcmSha256": "2c5f4094560a6155bc5c5d7143464bd42a946e47742d8d006cec6ab1d652e00b",
+            "phonemes": [
+              "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.",
+              "lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim."
+            ],
+            "synthesisText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes."
+          },
+          "mp3": {
+            "file": "audio/female-nombres-current.mp3",
+            "sha256": "6c00c588af45f07da0def6db4f1701104bf18225dd2e45f8dfb24c5725bcdfbd",
+            "bytes": 53542,
+            "pcmFrames": 145664,
+            "decodedFrames": 145664,
+            "sampleRate": 22050,
+            "durationSeconds": 6.606,
+            "sourcePcmSha256": "2c5f4094560a6155bc5c5d7143464bd42a946e47742d8d006cec6ab1d652e00b",
+            "phonemes": [
+              "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.",
+              "lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim."
+            ],
+            "synthesisText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes."
+          }
+        },
+        "male": {
+          "wav": {
+            "file": "audio/male-nombres-current.wav",
+            "sha256": "d1e75f2eecf5d787e659daa5b63c53e4ddfb7a3d5945c1951edf50eec3078f9e",
+            "bytes": 279596,
+            "pcmFrames": 139776,
+            "decodedFrames": 139776,
+            "sampleRate": 22050,
+            "durationSeconds": 6.339,
+            "sourcePcmSha256": "b14c84cc25df39893883e13f470a2bb8be63d12e617ab4c4a0f7b5cf9ef2c6ca",
+            "phonemes": [
+              "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.",
+              "lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim."
+            ],
+            "synthesisText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes."
+          },
+          "mp3": {
+            "file": "audio/male-nombres-current.mp3",
+            "sha256": "f66743c6f608731540588410418ec1a43401c730f480d11289b22ef113643a50",
+            "bytes": 51453,
+            "pcmFrames": 139776,
+            "decodedFrames": 139776,
+            "sampleRate": 22050,
+            "durationSeconds": 6.339,
+            "sourcePcmSha256": "b14c84cc25df39893883e13f470a2bb8be63d12e617ab4c4a0f7b5cf9ef2c6ca",
+            "phonemes": [
+              "lə- ʁɑ̃dˈevuz ɛ fiksˈe o vɛ̃teˈœ̃ ɔktˈɔbʁ a dizyˈit ˈœʁ tʁˈɑ̃t.",
+              "lə- pʁˈi ɛ də- dˈuz øʁˈoz e sɛ̃kˈɑ̃t sɑ̃tˈim."
+            ],
+            "synthesisText": "Le rendez-vous est fixé au 21 octobre à 18 heures 30. Le prix est de 12 euros et 50 centimes."
+          }
+        }
+      }
+    },
+    {
+      "id": "quotidien",
+      "text": "Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.",
+      "spokenText": "Bonjour, je voudrais acheter une baguette et prendre le train pour Toulouse.",
+      "synthesisText": "Bonjour, [[ʒə vudʁˈɛ aʃətˈe]] une baguette et prendre le train pour Toulouse.",
+      "pronunciationOverrides": [
+        {
+          "text": "je voudrais acheter",
+          "phonemes": "ʒə vudʁˈɛ aʃətˈe",
+          "reason": "Explicit acheter schwa and no added consonant after voudrais"
+        }
+      ],
+      "explicitPhonemes": null,
+      "referenceClips": {
+        "female": "216dcd523b31af53e077003516f23d23e53fa2a0b37823ed1d159af9433c2c25",
+        "male": "9bd58c79916b097a4556fd2bde0f47d54b93beb0f64ee0d5c98eb66db21b45d3"
+      },
+      "clips": {
+        "female": {
+          "wav": {
+            "file": "audio/female-quotidien-current.wav",
+            "sha256": "81b7d6ad98f9d842b3828133283eaea0b40b1ea74f52df86fe0106228bb60f7f",
+            "bytes": 194092,
+            "pcmFrames": 97024,
+            "decodedFrames": 97024,
+            "sampleRate": 22050,
+            "durationSeconds": 4.4,
+            "sourcePcmSha256": "9c664cfb9ad313b9d60363baf94c7096983b84d1f542c1400304449184dd4dab",
+            "phonemes": [
+              "bɔ̃ʒˈuʁ,  ʒə vudʁˈɛ aʃətˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz."
+            ],
+            "synthesisText": "Bonjour, [[ʒə vudʁˈɛ aʃətˈe]] une baguette et prendre le train pour Toulouse."
+          },
+          "mp3": {
+            "file": "audio/female-quotidien-current.mp3",
+            "sha256": "e61cbe61e54bd08897cea98a21e23f891bedb1e4360a3d6117111651587a6322",
+            "bytes": 35988,
+            "pcmFrames": 97024,
+            "decodedFrames": 97024,
+            "sampleRate": 22050,
+            "durationSeconds": 4.4,
+            "sourcePcmSha256": "9c664cfb9ad313b9d60363baf94c7096983b84d1f542c1400304449184dd4dab",
+            "phonemes": [
+              "bɔ̃ʒˈuʁ,  ʒə vudʁˈɛ aʃətˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz."
+            ],
+            "synthesisText": "Bonjour, [[ʒə vudʁˈɛ aʃətˈe]] une baguette et prendre le train pour Toulouse."
+          }
+        },
+        "male": {
+          "wav": {
+            "file": "audio/male-quotidien-current.wav",
+            "sha256": "03c00b9f7232bf0a6d36d331097b067d33b5472d5dc7b5c722ef473ac5efb05e",
+            "bytes": 190508,
+            "pcmFrames": 95232,
+            "decodedFrames": 95232,
+            "sampleRate": 22050,
+            "durationSeconds": 4.319,
+            "sourcePcmSha256": "086be37941ed18376d88fedd0c722db2d67fe114a480d474112c260a8f353c87",
+            "phonemes": [
+              "bɔ̃ʒˈuʁ,  ʒə vudʁˈɛ aʃətˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz."
+            ],
+            "synthesisText": "Bonjour, [[ʒə vudʁˈɛ aʃətˈe]] une baguette et prendre le train pour Toulouse."
+          },
+          "mp3": {
+            "file": "audio/male-quotidien-current.mp3",
+            "sha256": "29e9bdaed256befa22aa2622ff75411a2c70ee98560ebf4a6a45decebbf26f36",
+            "bytes": 35361,
+            "pcmFrames": 95232,
+            "decodedFrames": 95232,
+            "sampleRate": 22050,
+            "durationSeconds": 4.319,
+            "sourcePcmSha256": "086be37941ed18376d88fedd0c722db2d67fe114a480d474112c260a8f353c87",
+            "phonemes": [
+              "bɔ̃ʒˈuʁ,  ʒə vudʁˈɛ aʃətˈe yn baɡˈɛt e pʁˈɑ̃dʁ lə- tʁˈɛ̃ puʁ tulˈuz."
+            ],
+            "synthesisText": "Bonjour, [[ʒə vudʁˈɛ aʃətˈe]] une baguette et prendre le train pour Toulouse."
+          }
+        }
+      }
+    }
+  ],
+  "totalAudioBytes": 1366558
+}

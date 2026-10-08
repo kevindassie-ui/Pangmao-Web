@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hans" data-brand="deer">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#a93239" />
+  <title>Pangmao · 发音诊断 · Diagnostic de prononciation</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<main>
+  <a class="back" href="../">← 声音试听 3 · Essai des voix 3</a>
+  <header>
+    <p class="eyebrow">发音诊断 1 · DIAGNOSTIC 1</p>
+    <h1>检查遗漏的声音<br /><span lang="fr">Repérer les sons déformés</span></h1>
+    <p>先比较 A 和 B，再试听 C（如有）。<br /><span lang="fr">Compare A et B, puis C quand elle est proposée.</span></p>
+    <p class="note">A 与 B 来自同一音频，只有压缩不同。C 测试词典发音。<br /><span lang="fr">A et B proviennent exactement de la même synthèse ; seule la compression change. C teste la prononciation du dictionnaire. Ces variantes restent à évaluer.</span></p>
+    <p class="note">为本次诊断重新生成的样本，语速固定为 1×。需要联网，不会发送个人文本。<br /><span lang="fr">Extraits régénérés pour ce diagnostic, à 1×. Connexion nécessaire, aucun texte personnel envoyé.</span></p>
+  </header>
+  <label class="speed">声音 · Voix<select id="voice"><option value="male" selected>Pierre · 男声</option><option value="female">Jessica · 女声</option></select></label>
+  <p id="loading" role="status">正在载入… · Chargement…</p>
+  <div id="samples"></div>
+  <section class="feedback">
+    <h2>你的意见 · Ton avis</h2>
+    <p class="note">哪一版本更清楚？错误是否还在？<br /><span lang="fr">Indique quels mots restent déformés et si B ou C améliore A, pour Pierre et Jessica.</span></p>
+    <label>备注 · Remarque<textarea id="comment" rows="3" maxlength="2000"></textarea></label>
+    <button id="copyFeedback" type="button">复制意见 · Copier mon avis</button>
+    <p class="note">无自动发送；仅在本页保留。<br /><span lang="fr">Aucun envoi automatique. Le brouillon reste dans cette page jusqu’à sa fermeture.</span></p>
+    <textarea id="report" rows="6" readonly hidden aria-label="意见摘要 · Résumé de l’avis"></textarea>
+    <p id="copyStatus" role="status"></p>
+  </section>
+  <p class="note" id="size"></p>
+  <a href="./NOTICE.md">来源 · Sources et licences</a>
+</main>
+<footer class="player">
+  <p id="playStatus" role="status" aria-live="polite">选择一段 · Choisis un extrait</p>
+  <audio id="audio" controls preload="none" aria-label="播放 · Lecture"></audio>
+  <button id="stop" type="button">停止 · Arrêter</button>
+</footer>
+<script type="module" src="./controller.js"></script>
+</body>
+</html>
